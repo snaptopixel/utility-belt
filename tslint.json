@@ -1,0 +1,7 @@
+{
+  "extends": "tslint-config-standard",
+  "rules": {
+    "no-unexpected-multiline": false,
+    "ter-func-call-spacing": false
+  }
+}
