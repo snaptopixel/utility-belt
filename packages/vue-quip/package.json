@@ -23,5 +23,9 @@
     "vue": "^2.5.16",
     "vue-class-component": "^6.2.0",
     "vue-property-decorator": "^6.1.0"
+  },
+  "dependencies": {
+    "mocha": "^5.2.0",
+    "ts-node": "^6.0.5"
   }
 }
