@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "Better render functions for Vue with TypeScript",
   "keywords": [
-    "vue", "jsx", "vue-loader", "typescript", "tsx"
+    "vue",
+    "jsx",
+    "vue-loader",
+    "typescript",
+    "tsx"
   ],
   "homepage": "https://github.com/snaptopixel/utility-belt/packages/vue-quip",
   "main": "src/index.ts",

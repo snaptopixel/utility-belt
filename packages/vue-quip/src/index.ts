@@ -1,8 +1,7 @@
 import { IQuip } from './index'
 import installPlugins from './plugins'
 import Vue, { CreateElement, VNode, VNodeData, VueConstructor } from 'vue'
-import { VueClass } from 'vue-class-component/lib/declarations';
-
+import { VueClass } from 'vue-class-component/lib/declarations'
 
 export interface IComponents {
   // Populated via declaration merging
@@ -41,7 +40,7 @@ export interface IQuip<T extends AllTagNames> extends TagFactory, IPlugins<T> {
   (ref?: string): IQuip<T>
 }
 
-declare module 'vue/types/vue' {  
+declare module 'vue/types/vue' {
   interface Vue {
     $quip: IQuip<any>
   }
@@ -93,7 +92,7 @@ function QuipFactory ($createElement: CreateElement) {
     }
   })
 
-  for(const name of Object.keys(Plugins)) {
+  for (const name of Object.keys(Plugins)) {
     q[name] = (...args: any[]) => {
       const callback = Plugins[name as PluginNames](nodeDefinition, ...args)
       if (callback) {
@@ -146,18 +145,18 @@ export const QuipPlugin = {
           return this.__quip__ = this.__quip__ || QuipFactory(this.$createElement)
         }
       })
-    } 
+    }
   }
 }
 
 // Decorator
-export function Quip(componentName: ComponentNames) {
+export function Quip (componentName: ComponentNames) {
   return (definition: VueClass<Vue>) => {
     registerComponent(componentName, definition)
   }
 }
 
-const QuipApi:IQuipApi = { registerComponent, registerPlugin }
+const QuipApi: IQuipApi = { registerComponent, registerPlugin }
 
 installPlugins(QuipApi)
 

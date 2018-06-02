@@ -22,62 +22,62 @@ declare module './index' {
   }
 }
 
-export default function install(Quip: IQuipApi) {
+export default function install (Quip: IQuipApi) {
   Quip.registerPlugin('css', (def, ...params: any[]) => {
     def.class = def.class || {}
     if (typeof params[0] === 'object') {
-      def.class = {...def.class, ...params[0]}
-    } else if(typeof params[0] === 'string') {
+      def.class = { ...def.class, ...params[0] }
+    } else if (typeof params[0] === 'string') {
       def.class = {
         ...def.class,
         ...params.reduce((obj, className) => {
-        obj[className] = true
-        return obj
-      }, {})
+          obj[className] = true
+          return obj
+        }, {})
       }
     }
   })
-  
+
   Quip.registerPlugin('style', (def, ...params: any[]) => {
     def.style = def.style || {}
     if (typeof params[0] === 'object') {
-      def.style = {...def.style, ...params[0]}
-    } else if(typeof params[0] === 'string') {
+      def.style = { ...def.style, ...params[0] }
+    } else if (typeof params[0] === 'string') {
       def.style[params[0]] = params[1]
     }
   })
-  
+
   Quip.registerPlugin('on', (def, ...params: any[]) => {
     def.on = def.on || {}
     if (typeof params[0] === 'object') {
-      def.on = {...def.on, ...params[0]}
-    } else if(typeof params[0] === 'string') {
+      def.on = { ...def.on, ...params[0] }
+    } else if (typeof params[0] === 'string') {
       def.on[params[0]] = params[1]
     }
   })
-  
+
   Quip.registerPlugin('prop', (def, ...params: any[]) => {
     def.props = def.props || {}
     if (typeof params[0] === 'object') {
-      def.props = {...def.props, ...params[0]}
-    } else if(typeof params[0] === 'string') {
+      def.props = { ...def.props, ...params[0] }
+    } else if (typeof params[0] === 'string') {
       def.props[params[0]] = params[1]
     }
   })
-  
+
   Quip.registerPlugin('text', (def, value: string) => {
     return (vnode, createElement) => {
       vnode.children.push(createElement('span', null, [value]))
     }
   })
-  
+
   Quip.registerPlugin('map', (def, items: any[], fn: (item: any) => void) => {
     items.map(fn)
   })
-  
+
   let switchValue: any
   let switchActive: boolean
-  
+
   Quip.registerPlugin('switch', (def, value: any) => {
     switchValue = value
     switchActive = true
@@ -85,25 +85,25 @@ export default function install(Quip: IQuipApi) {
       switchActive = false
     }
   })
-  
+
   Quip.registerPlugin('case', (def, value: any, fn: () => void) => {
     if (!switchActive) {
       throw new Error('case() must follow switch()')
     }
-    if(switchValue === value) {
-      fn();
+    if (switchValue === value) {
+      fn()
     }
   })
-  
+
   Quip.registerPlugin('default', (def, fn: (value: any) => void) => {
     if (!switchActive) {
       throw new Error('default() must follow switch()')
     }
-    fn(switchValue);
+    fn(switchValue)
   })
-  
+
   let doElse: boolean
-  
+
   Quip.registerPlugin('if', (def, value: boolean | (() => boolean), fn: () => void) => {
     if (typeof value === 'function') {
       value = value()
@@ -113,8 +113,8 @@ export default function install(Quip: IQuipApi) {
       fn()
     }
   })
-  
+
   Quip.registerPlugin('else', (def, fn: () => void) => {
     if (doElse) { fn() }
-  })  
+  })
 }

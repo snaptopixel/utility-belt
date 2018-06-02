@@ -1,12 +1,12 @@
-import { QuipPlugin } from '../src/index';
-import { Vue, Component } from 'vue-property-decorator';
-import { mount } from '@vue/test-utils';
+import { QuipPlugin } from '../src/index'
+import { Vue, Component } from 'vue-property-decorator'
+import { mount } from '@vue/test-utils'
 
 Vue.use(QuipPlugin)
 
 @Component
 class MyComponent extends Vue {
-  render() {
+  render () {
     const { main } = this.$quip
     return(
       main('main')
@@ -23,7 +23,6 @@ class MyComponent extends Vue {
     )
   }
 }
-
 
 describe('vue-quip', () => {
   const w = mount(MyComponent)
