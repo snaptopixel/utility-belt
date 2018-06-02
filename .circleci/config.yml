@@ -27,6 +27,11 @@ jobs:
           paths:
             - node_modules/
         
-      # run tests!
-      - run: yarn test
+      - run:
+          name: Run tests
+          command: yarn test
+
+      - run:
+          name: Codecov
+          command: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
 

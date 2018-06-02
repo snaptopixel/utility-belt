@@ -7,7 +7,8 @@
     "jsx",
     "vue-loader",
     "typescript",
-    "tsx"
+    "tsx",
+    "hyperscript"
   ],
   "homepage": "https://github.com/snaptopixel/utility-belt/packages/vue-quip",
   "main": "src/index.ts",
@@ -22,10 +23,7 @@
     "@vue/test-utils": "^1.0.0-beta.16",
     "vue": "^2.5.16",
     "vue-class-component": "^6.2.0",
-    "vue-property-decorator": "^6.1.0"
-  },
-  "dependencies": {
-    "mocha": "^5.2.0",
-    "ts-node": "^6.0.5"
+    "vue-property-decorator": "^6.1.0",
+    "vue-template-compiler": "^2.5.16"
   }
 }

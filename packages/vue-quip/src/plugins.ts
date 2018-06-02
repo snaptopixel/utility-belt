@@ -83,6 +83,7 @@ export default function install (Quip: IQuipApi) {
     switchActive = true
     return () => {
       switchActive = false
+      switchValue = null
     }
   })
 

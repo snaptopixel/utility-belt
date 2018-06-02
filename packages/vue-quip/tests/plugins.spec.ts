@@ -22,6 +22,30 @@ export class Child extends Vue {
 }
 
 @Component
+class CaseThrow extends Vue {
+  render () {
+    const { div } = this.$quip
+    return(
+      div()
+        .case('foo', () => false)
+      ()
+    )
+  }
+}
+
+@Component
+class ElseThrow extends Vue {
+  render () {
+    const { div } = this.$quip
+    return(
+      div()
+        .else(() => false)
+      ()
+    )
+  }
+}
+
+@Component
 class MyComponent extends Vue {
   public onClick: SinonSpy = sinon.spy()
   public onMouseOver: SinonSpy = sinon.spy()
@@ -69,7 +93,15 @@ class MyComponent extends Vue {
         .div('switch')
           .switch('b')
             .case('a', () => text('div a'))
-            .case('b', () => text('div b'))
+            .case('b', () => {
+              text('div b')
+                .switch('foo')
+                  .case('bar', () => text('bar'))
+                  .case('foo', () => text('foo'))
+            })
+            .case('b', () => {
+              text('yeye')
+            })
             .case('c', () => text('div c'))
             .default(value => {
               text(`default ${value}`)
@@ -158,6 +190,9 @@ describe('vue-quip plugins', () => {
     it('works with default()', () => {
       expect(div.text()).contains('default b')
     })
+    it('case() throws error without switch()', () => {
+      expect(() => mount(CaseThrow)).to.throw
+    })
   })
 
   describe('if()', () => {
@@ -168,6 +203,9 @@ describe('vue-quip plugins', () => {
     it('works with a function', () => {
       expect(w.find({ ref: 'iftruefn' }).element).undefined
       expect(w.find({ ref: 'iffalsefn' }).element).exist
+    })
+    it('else() throws error without if()', () => {
+      expect(() => mount(ElseThrow)).to.throw
     })
   })
 })
