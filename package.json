@@ -5,7 +5,8 @@
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "test": "mocha-webpack --require \"test-bootstrap.js\" --glob \"*.spec.ts\" packages --recursive",
+    "test": "mocha -r ts-node/register -r test-bootstrap.js **/*.spec.ts",
+    "start": "yarn test -w --watch-extensions ts --reporter min",
     "release": "lerna publish",
     "ls": "lerna ls"
   },
@@ -21,15 +22,11 @@
     "jsdom-global": "^3.0.2",
     "lerna": "^2.11.0",
     "mocha": "^5.2.0",
-    "mocha-webpack": "2.0.0-beta.0",
     "sinon": "^5.0.7",
     "sinon-chai": "^3.0.0",
-    "ts-loader": "^4.3.0",
     "tslint": "^5.10.0",
     "tslint-config-standard": "^7.0.0",
     "typescript": "^2.8.3",
-    "vue-template-compiler": "^2.5.16",
-    "webpack": "^4.8.3",
-    "webpack-node-externals": "^1.7.2"
+    "vue-template-compiler": "^2.5.16"
   }
 }
