@@ -83,24 +83,21 @@ export default function install (Quip: IQuipApi) {
     switchActive = true
     return () => {
       switchActive = false
-      switchValue = null
     }
   })
 
   Quip.registerPlugin('case', (def, value: any, fn: () => void) => {
-    if (!switchActive) {
-      throw new Error('case() must follow switch()')
-    }
-    if (switchValue === value) {
+    if (switchActive && switchValue === value) {
       fn()
+      switchActive = false
     }
   })
 
   Quip.registerPlugin('default', (def, fn: (value: any) => void) => {
-    if (!switchActive) {
-      throw new Error('default() must follow switch()')
+    if (switchActive) {
+      fn(switchValue)
+      switchActive = false
     }
-    fn(switchValue)
   })
 
   let doElse: boolean

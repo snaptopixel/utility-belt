@@ -20,31 +20,6 @@ export class Child extends Vue {
     return div()()
   }
 }
-
-@Component
-class CaseThrow extends Vue {
-  render () {
-    const { div } = this.$quip
-    return(
-      div()
-        .case('foo', () => false)
-      ()
-    )
-  }
-}
-
-@Component
-class ElseThrow extends Vue {
-  render () {
-    const { div } = this.$quip
-    return(
-      div()
-        .else(() => false)
-      ()
-    )
-  }
-}
-
 @Component
 class MyComponent extends Vue {
   public onClick: SinonSpy = sinon.spy()
@@ -95,9 +70,11 @@ class MyComponent extends Vue {
             .case('a', () => text('div a'))
             .case('b', () => {
               text('div b')
+              div('nested-switch')
                 .switch('foo')
                   .case('bar', () => text('bar'))
                   .case('foo', () => text('foo'))
+              ()
             })
             .case('b', () => {
               text('yeye')
@@ -106,6 +83,12 @@ class MyComponent extends Vue {
             .default(value => {
               text(`default ${value}`)
             })
+        ()
+        .div('default-switch')
+          .switch('x')
+          .default(value => {
+            text(`default ${value}`)
+          })
         ()
         .if(true, () => {
           div('iftrue')()
@@ -124,7 +107,7 @@ class MyComponent extends Vue {
   }
 }
 
-describe('vue-quip plugins', () => {
+describe('quip plugin', () => {
   const w = mount(MyComponent)
 
   describe('css()', () => {
@@ -184,14 +167,16 @@ describe('vue-quip plugins', () => {
 
   describe('switch()', () => {
     const div = w.find({ ref: 'switch' })
+    const divNested = w.find({ ref: 'nested-switch' })
+    const divDefault = w.find({ ref: 'default-switch' })
     it('works with case()', () => {
       expect(div.text()).contains('div b')
     })
-    it('works with default()', () => {
-      expect(div.text()).contains('default b')
+    it('works when nested', () => {
+      expect(divNested.text()).eq('foo')
     })
-    it('case() throws error without switch()', () => {
-      expect(() => mount(CaseThrow)).to.throw
+    it('works with default()', () => {
+      expect(divDefault.text()).contains('default x')
     })
   })
 
@@ -203,9 +188,6 @@ describe('vue-quip plugins', () => {
     it('works with a function', () => {
       expect(w.find({ ref: 'iftruefn' }).element).undefined
       expect(w.find({ ref: 'iffalsefn' }).element).exist
-    })
-    it('else() throws error without if()', () => {
-      expect(() => mount(ElseThrow)).to.throw
     })
   })
 })

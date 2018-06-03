@@ -24,7 +24,7 @@ class MyComponent extends Vue {
   }
 }
 
-describe('vue-quip', () => {
+describe('quip', () => {
   const w = mount(MyComponent)
 
   it('creates properly structured dom', () => {

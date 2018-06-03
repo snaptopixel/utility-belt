@@ -1,5 +1,5 @@
 {
-  "name": "@snaptopixel/vue-quip",
+  "name": "@snaptopixel/quip",
   "version": "1.0.0",
   "description": "Better render functions for Vue with TypeScript",
   "keywords": [
@@ -10,7 +10,7 @@
     "tsx",
     "hyperscript"
   ],
-  "homepage": "https://github.com/snaptopixel/utility-belt/packages/vue-quip",
+  "homepage": "https://github.com/snaptopixel/utility-belt/packages/quip",
   "main": "src/index.ts",
   "repository": "snaptopixel/utility-belt",
   "author": "Casey Corcoran (https://github.com/snaptopixel)",
