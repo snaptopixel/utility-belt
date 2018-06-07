@@ -55,20 +55,3 @@ return(
 //   </li>
 // </ul>
 ```
-
-### Building your template
-```ts
-return(
-  main()
-    .header()
-      .nav()
-        .ul()
-          .li()()
-          .li()()
-          .li()()
-        ()
-      ()
-    ()
-  ()
-)
-```
