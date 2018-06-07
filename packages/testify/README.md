@@ -43,7 +43,7 @@ yarn add @snaptopixel/testify
 ```
 
 ### Customizing the test environment
-In order to accomplish this, you can simply pass an arbitrary number of .js files using the `-r` argument like so:
+You can pass an arbitrary number of .js files using the `-r` argument like so:
 ```js
 {
   "test": "testify -t tests/**/*.spec.ts -r some-file.js some-other-file.js"
@@ -51,7 +51,7 @@ In order to accomplish this, you can simply pass an arbitrary number of .js file
 ```
 These scripts will be required and executed in the node environment once jsdom has been initialized.  
 
-This is useful if your scripts depend on global variables, an example could be:
+This is useful if your scripts depend on global variables, for example:
 
 ```js
 // In required js file

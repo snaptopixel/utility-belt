@@ -13,14 +13,19 @@ const glob = require('glob')
 const yargs = require('yargs')
 const minimatch = require('minimatch')
 
+yargs.array('require')
 yargs.alias('w', 'watch')
 yargs.alias('t', 'test-glob')
 yargs.alias('s', 'src-glob')
+yargs.alias('r', 'require')
+
+const argv = yargs.argv
 
 require('ts-node/register')
 require('source-map-support/register')
+require('./mock.webpack')
 
-const isWatching = yargs.argv.watch
+const isWatching = argv.watch
 
 jsdom()
 
@@ -30,6 +35,10 @@ global.expect = chai.expect
 
 chai.use(sinonChai)
 chai.use(chaiDom)
+
+if (argv.r) {
+  argv.r.forEach(s => require(path.resolve(s)))
+}
 
 let fileList
 
@@ -41,7 +50,7 @@ function runSuite() {
   // Create a new test runner
   const m = new mocha()
   // Filter out anything that may have sneaked in, we want only tests
-  const tests = fileList.filter(path => minimatch(path, yargs.argv.t))
+  const tests = fileList.filter(path => minimatch(path, argv.t))
   tests.forEach(filepath => m.addFile(filepath))
   if (isWatching) {
     // In watch mode, we don't want to kill the process if an error is thrown
@@ -61,15 +70,15 @@ function runSuite() {
 
 if (isWatching) {
   fileList = []
-  chokidar.watch( yargs.argv.t, { persistent: true} )
+  chokidar.watch( argv.t, { persistent: true} )
     .on('add', path => fileList.push( path ))
     .on('change', runSuite)
     .on('ready', runSuite)
 
-  chokidar.watch( yargs.argv.s, { persistent: true, ignored: yargs.argv.t } )
+  chokidar.watch( argv.s, { persistent: true, ignored: argv.t } )
     .on('change', runSuite)
 } else {
-  glob(yargs.argv.t, (er, files) => {
+  glob(argv.t, (er, files) => {
     fileList = files
     runSuite()
   })
