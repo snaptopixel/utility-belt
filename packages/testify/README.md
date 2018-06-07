@@ -1,5 +1,19 @@
 # testify
-A simple, opinionated setup for testing front-end Typescript projects.
+A simple, opinionated setup for testing browser-based Typescript projects.
+
+<!-- TOC depthFrom:2 -->
+
+- [What it does](#what-it-does)
+- [How it does it](#how-it-does-it)
+- [Using it in your projects](#using-it-in-your-projects)
+  - [Installation](#installation)
+  - [Run script(s)](#run-scripts)
+    - [Single test run](#single-test-run)
+    - [Watch mode (re-run tests when files are changed)](#watch-mode-re-run-tests-when-files-are-changed)
+    - [Single test run w/coverage](#single-test-run-wcoverage)
+- [Customizing the test environment](#customizing-the-test-environment)
+
+<!-- /TOC -->
 
 ### What it does
 Initializes a test envirnonment with the following:
@@ -14,12 +28,12 @@ Initializes a test envirnonment with the following:
 Provides a basic cli for running tests borrowing many of the ideas from [@tomazzaman](https://github.com/tomazzaman)'s excellent article “[How to get fast unit tests with(out) Webpack](https://medium.com/@TomazZaman/how-to-get-fast-unit-tests-with-out-webpack-793c408a076f)”
 
 ### Using it in your projects
-#### Install via npm or yarn  
+#### Installation 
 ```
 yarn add @snaptopixel/testify
 ```
 
-#### Configure script(s) in package.json
+#### Run script(s)
 ##### Single test run  
 > `-t` is shorthand for `--test-glob`
 ```js
@@ -35,7 +49,7 @@ yarn add @snaptopixel/testify
 }
 ```
 ##### Single test run w/coverage
-> Install [nyc](https://github.com/istanbuljs/nyc) and simply add it before `testify`, check nyc's README on how it's configured
+> Install [nyc](https://github.com/istanbuljs/nyc) and simply add it before `testify`, check nyc's README on how to configure the output
 ```js
 {
   "test": "nyc testify -t tests/**/*.spec.ts"
@@ -59,7 +73,7 @@ window.SomeGlobal = {
   someMethod: sinon.spy()
 }
 
-// test file 'test.spec.ts'
+// In test file 'test.spec.ts'
 describe('globals', () => {
   it('can access global', () => {
     window.SomeGlobal.someMethod('hey')
