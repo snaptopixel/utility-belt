@@ -16,11 +16,6 @@ Module.prototype.require = function( path ) {
   const types = /\.(s?css|sass|less|svg|html|png|jpe?g|gif)$/;
   if ( path.search( types ) !== -1 ) return {};
 
-  // Mimics Webpack's "alias" feature
-  if ( path === 'config' ) {
-    path = resolve( './src/js/secrets/test.js' );
-  }
-
   assert( typeof path === 'string', 'path must be a string' );
   assert( path, 'missing path' );
 

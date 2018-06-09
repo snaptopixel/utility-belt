@@ -1,5 +1,5 @@
-import { VNode } from 'vue'
-import { IQuipApi } from './index'
+import { VNode, VNodeData } from 'vue'
+import { registerPlugin } from './index'
 
 declare module './index' {
   export interface IPlugins<T> {
@@ -19,11 +19,14 @@ declare module './index' {
     default (fn: (value: any) => void): IQuip<T>
     if (value: boolean | (() => boolean), fn: () => void): IQuip<T>
     else (fn: () => void): IQuip<T>
+    attr (name: string, value: string): IQuip<T>
+    attr (obj: {[attr: string]: string}): IQuip<T>
+    data (data: VNodeData): IQuip<T>
   }
 }
 
-export default function install (Quip: IQuipApi) {
-  Quip.registerPlugin('css', (def, ...params: any[]) => {
+export default function install () {
+  registerPlugin('css', (def: VNodeData, ...params: any[]) => {
     def.class = def.class || {}
     if (typeof params[0] === 'object') {
       def.class = { ...def.class, ...params[0] }
@@ -38,16 +41,16 @@ export default function install (Quip: IQuipApi) {
     }
   })
 
-  Quip.registerPlugin('style', (def, ...params: any[]) => {
+  registerPlugin('style', (def: VNodeData, ...params: any[]) => {
     def.style = def.style || {}
     if (typeof params[0] === 'object') {
       def.style = { ...def.style, ...params[0] }
     } else if (typeof params[0] === 'string') {
-      def.style[params[0]] = params[1]
+      (def.style as any)[params[0]] = params[1]
     }
   })
 
-  Quip.registerPlugin('on', (def, ...params: any[]) => {
+  registerPlugin('on', (def: VNodeData, ...params: any[]) => {
     def.on = def.on || {}
     if (typeof params[0] === 'object') {
       def.on = { ...def.on, ...params[0] }
@@ -56,7 +59,7 @@ export default function install (Quip: IQuipApi) {
     }
   })
 
-  Quip.registerPlugin('prop', (def, ...params: any[]) => {
+  registerPlugin('prop', (def: VNodeData, ...params: any[]) => {
     def.props = def.props || {}
     if (typeof params[0] === 'object') {
       def.props = { ...def.props, ...params[0] }
@@ -65,20 +68,20 @@ export default function install (Quip: IQuipApi) {
     }
   })
 
-  Quip.registerPlugin('text', (def, value: string) => {
+  registerPlugin('text', (def: VNodeData, value: string) => {
     return (vnode, createElement) => {
-      vnode.children.push(createElement('span', null, [value]))
+      vnode.children.push(createElement('i', value).children[0])
     }
   })
 
-  Quip.registerPlugin('map', (def, items: any[], fn: (item: any) => void) => {
+  registerPlugin('map', (def: VNodeData, items: any[], fn: (item: any) => void) => {
     items.map(fn)
   })
 
   let switchValue: any
   let switchActive: boolean
 
-  Quip.registerPlugin('switch', (def, value: any) => {
+  registerPlugin('switch', (def: VNodeData, value: any) => {
     switchValue = value
     switchActive = true
     return () => {
@@ -86,14 +89,14 @@ export default function install (Quip: IQuipApi) {
     }
   })
 
-  Quip.registerPlugin('case', (def, value: any, fn: () => void) => {
+  registerPlugin('case', (def: VNodeData, value: any, fn: () => void) => {
     if (switchActive && switchValue === value) {
       fn()
       switchActive = false
     }
   })
 
-  Quip.registerPlugin('default', (def, fn: (value: any) => void) => {
+  registerPlugin('default', (def: VNodeData, fn: (value: any) => void) => {
     if (switchActive) {
       fn(switchValue)
       switchActive = false
@@ -102,7 +105,7 @@ export default function install (Quip: IQuipApi) {
 
   let doElse: boolean
 
-  Quip.registerPlugin('if', (def, value: boolean | (() => boolean), fn: () => void) => {
+  registerPlugin('if', (def: VNodeData, value: boolean | (() => boolean), fn: () => void) => {
     if (typeof value === 'function') {
       value = value()
     }
@@ -112,7 +115,22 @@ export default function install (Quip: IQuipApi) {
     }
   })
 
-  Quip.registerPlugin('else', (def, fn: () => void) => {
+  registerPlugin('else', (def: VNodeData, fn: () => void) => {
     if (doElse) { fn() }
+  })
+
+  registerPlugin('attr', (def: VNodeData, ...params: any[]) => {
+    def.attrs = def.attrs || {}
+    if (typeof params[0] === 'object') {
+      def.attrs = { ...def.attrs, ...params[0] }
+    } else if (typeof params[0] === 'string') {
+      def.attrs[params[0]] = params[1]
+    }
+  })
+
+  registerPlugin('data', (def: VNodeData, data: VNodeData) => {
+    Object.keys(data).forEach((key: keyof VNodeData) => {
+      def[key] = data[key]
+    })
   })
 }

@@ -25,5 +25,9 @@
     "vue-class-component": "^6.2.0",
     "vue-property-decorator": "^6.1.0",
     "vue-template-compiler": "^2.5.16"
+  },
+  "dependencies": {
+    "@types/lodash.merge": "^4.6.3",
+    "lodash.merge": "^4.6.1"
   }
 }

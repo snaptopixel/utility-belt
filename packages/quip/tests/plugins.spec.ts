@@ -1,4 +1,4 @@
-import { QuipPlugin, Quip } from '../src/index'
+import { QuipPlugin, registerComponent } from '../src/index'
 import { Vue, Prop, Component } from 'vue-property-decorator'
 import { mount } from '@vue/test-utils'
 import { SinonSpy } from 'sinon'
@@ -11,7 +11,7 @@ declare module '../src/index' {
   }
 }
 
-@Quip('child') @Component
+@Component
 export class Child extends Vue {
   @Prop() foo: string
   @Prop() bar: string
@@ -20,6 +20,9 @@ export class Child extends Vue {
     return div()()
   }
 }
+
+registerComponent('child', Child)
+
 @Component
 class MyComponent extends Vue {
   public onClick: SinonSpy = sinon.spy()
@@ -28,6 +31,19 @@ class MyComponent extends Vue {
     const { div, li, text } = this.$quip
     return(
       div()
+        .div('data')
+          .data({
+            domProps: {
+              innerHTML: 'Look at that'
+            }
+          })
+        ()
+        .div('attr')
+          .attr({
+            id: 'defined'
+          })
+          .attr('contentEditable', 'true')
+        ()
         .div('css')
           .css('hey', 'bud')
           .css({
@@ -188,6 +204,20 @@ describe('quip plugin', () => {
     it('works with a function', () => {
       expect(w.find({ ref: 'iftruefn' }).element).undefined
       expect(w.find({ ref: 'iffalsefn' }).element).exist
+    })
+  })
+
+  describe('attr()', () => {
+    it('defines attributes on VNodeData', () => {
+      const m = w.find({ ref: 'attr' })
+      expect(m.element.getAttribute('id')).eq('defined')
+      expect(m.element.getAttribute('contentEditable')).eq('true')
+    })
+  })
+
+  describe('data()', () => {
+    it('defines properties on VNodeData', () => {
+      expect(w.find({ ref: 'data' }).text()).eq('Look at that')
     })
   })
 })
