@@ -1,5 +1,5 @@
 {
-  "name": "@snaptopixel/vue-quip",
+  "name": "@snaptopixel/quip",
   "version": "1.0.0",
   "description": "Better render functions for Vue with TypeScript",
   "keywords": [
@@ -7,9 +7,10 @@
     "jsx",
     "vue-loader",
     "typescript",
-    "tsx"
+    "tsx",
+    "hyperscript"
   ],
-  "homepage": "https://github.com/snaptopixel/utility-belt/packages/vue-quip",
+  "homepage": "https://github.com/snaptopixel/utility-belt/packages/quip",
   "main": "src/index.ts",
   "repository": "snaptopixel/utility-belt",
   "author": "Casey Corcoran (https://github.com/snaptopixel)",
@@ -22,10 +23,11 @@
     "@vue/test-utils": "^1.0.0-beta.16",
     "vue": "^2.5.16",
     "vue-class-component": "^6.2.0",
-    "vue-property-decorator": "^6.1.0"
+    "vue-property-decorator": "^6.1.0",
+    "vue-template-compiler": "^2.5.16"
   },
   "dependencies": {
-    "mocha": "^5.2.0",
-    "ts-node": "^6.0.5"
+    "@types/lodash.merge": "^4.6.3",
+    "lodash.merge": "^4.6.1"
   }
 }

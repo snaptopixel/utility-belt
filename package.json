@@ -5,28 +5,26 @@
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "test": "mocha -r ts-node/register -r test-bootstrap.js **/*.spec.ts",
-    "start": "yarn test -w --watch-extensions ts --reporter min",
+    "test": "nyc testify -t packages/**/*.spec.ts",
+    "start": "testify -t packages/**/*.spec.ts -s packages/**/*.ts -w",
     "release": "lerna publish",
     "ls": "lerna ls"
   },
   "devDependencies": {
-    "@types/chai": "^4.1.3",
-    "@types/chai-dom": "^0.0.6",
-    "@types/mocha": "^5.2.0",
-    "@types/sinon": "^4.3.3",
-    "@types/sinon-chai": "^2.7.31",
-    "chai": "^4.1.2",
-    "chai-dom": "^1.8.0",
-    "jsdom": "^11.11.0",
-    "jsdom-global": "^3.0.2",
     "lerna": "^2.11.0",
-    "mocha": "^5.2.0",
-    "sinon": "^5.0.7",
-    "sinon-chai": "^3.0.0",
+    "nyc": "^12.0.1",
+    "@snaptopixel/testify": "^1.0.0",
     "tslint": "^5.10.0",
     "tslint-config-standard": "^7.0.0",
-    "typescript": "^2.8.3",
-    "vue-template-compiler": "^2.5.16"
+    "typescript": "^2.8.3"
+  },
+  "nyc": {
+    "include": ["packages/**/*.ts"],
+    "extension": [".ts"],
+    "require": ["ts-node/register"],
+    "reporter": ["json"],
+    "exclude": ["packages/**/*.spec.ts"],
+    "sourceMap": true,
+    "instrument": true
   }
 }

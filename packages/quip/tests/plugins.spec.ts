@@ -1,4 +1,4 @@
-import { QuipPlugin, Quip } from '../src/index'
+import { QuipPlugin, registerComponent } from '../src/index'
 import { Vue, Prop, Component } from 'vue-property-decorator'
 import { mount } from '@vue/test-utils'
 import { SinonSpy } from 'sinon'
@@ -11,7 +11,7 @@ declare module '../src/index' {
   }
 }
 
-@Quip('child') @Component
+@Component
 export class Child extends Vue {
   @Prop() foo: string
   @Prop() bar: string
@@ -21,6 +21,8 @@ export class Child extends Vue {
   }
 }
 
+registerComponent('child', Child)
+
 @Component
 class MyComponent extends Vue {
   public onClick: SinonSpy = sinon.spy()
@@ -29,6 +31,19 @@ class MyComponent extends Vue {
     const { div, li, text } = this.$quip
     return(
       div()
+        .div('data')
+          .data({
+            domProps: {
+              innerHTML: 'Look at that'
+            }
+          })
+        ()
+        .div('attr')
+          .attr({
+            id: 'defined'
+          })
+          .attr('contentEditable', 'true')
+        ()
         .div('css')
           .css('hey', 'bud')
           .css({
@@ -69,11 +84,27 @@ class MyComponent extends Vue {
         .div('switch')
           .switch('b')
             .case('a', () => text('div a'))
-            .case('b', () => text('div b'))
+            .case('b', () => {
+              text('div b')
+              div('nested-switch')
+                .switch('foo')
+                  .case('bar', () => text('bar'))
+                  .case('foo', () => text('foo'))
+              ()
+            })
+            .case('b', () => {
+              text('yeye')
+            })
             .case('c', () => text('div c'))
             .default(value => {
               text(`default ${value}`)
             })
+        ()
+        .div('default-switch')
+          .switch('x')
+          .default(value => {
+            text(`default ${value}`)
+          })
         ()
         .if(true, () => {
           div('iftrue')()
@@ -92,7 +123,7 @@ class MyComponent extends Vue {
   }
 }
 
-describe('vue-quip plugins', () => {
+describe('quip plugin', () => {
   const w = mount(MyComponent)
 
   describe('css()', () => {
@@ -152,11 +183,16 @@ describe('vue-quip plugins', () => {
 
   describe('switch()', () => {
     const div = w.find({ ref: 'switch' })
+    const divNested = w.find({ ref: 'nested-switch' })
+    const divDefault = w.find({ ref: 'default-switch' })
     it('works with case()', () => {
       expect(div.text()).contains('div b')
     })
+    it('works when nested', () => {
+      expect(divNested.text()).eq('foo')
+    })
     it('works with default()', () => {
-      expect(div.text()).contains('default b')
+      expect(divDefault.text()).contains('default x')
     })
   })
 
@@ -168,6 +204,20 @@ describe('vue-quip plugins', () => {
     it('works with a function', () => {
       expect(w.find({ ref: 'iftruefn' }).element).undefined
       expect(w.find({ ref: 'iffalsefn' }).element).exist
+    })
+  })
+
+  describe('attr()', () => {
+    it('defines attributes on VNodeData', () => {
+      const m = w.find({ ref: 'attr' })
+      expect(m.element.getAttribute('id')).eq('defined')
+      expect(m.element.getAttribute('contentEditable')).eq('true')
+    })
+  })
+
+  describe('data()', () => {
+    it('defines properties on VNodeData', () => {
+      expect(w.find({ ref: 'data' }).text()).eq('Look at that')
     })
   })
 })

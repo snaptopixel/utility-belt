@@ -1,6 +1,6 @@
 import { IQuip } from './index'
 import installPlugins from './plugins'
-import Vue, { CreateElement, VNode, VNodeData, VueConstructor } from 'vue'
+import Vue, { CreateElement, VNode, VNodeData, VueConstructor, ComponentOptions } from 'vue'
 import { VueClass } from 'vue-class-component/lib/declarations'
 
 export interface IComponents {
@@ -12,11 +12,6 @@ export interface IPlugins<T extends AllTagNames> {
 }
 
 type PluginFn = (...args: any[]) => PluginCallback | void
-
-export interface IQuipApi {
-  registerPlugin<PluginName extends PluginNames> (name: PluginName, fn: PluginFn): void
-  registerComponent<ComponentName extends keyof IComponents> (name: ComponentName, component: VueClass<Vue>): void
-}
 
 enum HtmlTags {
   html, head, meta, link, title, base, body, nav, header, footer, main, aside, article, section, h1, h2, h3, h4, h5, h6, hr, ul, ol, li, dl, dt, dd, div, p, pre, blockquote, span, a, em, strong, b, i, u, s, mark, small, del, ins, sup, sub, dfn, code, var, samp, kbd, q, cite, ruby, rt, rp, br, wbr, bdo, bdi, table, caption, tr, td, th, thead, tfoot, tbody, colgroup, col, img, figure, figcaption, video, audio, source, track, iframe, canvas, abbr, address, meter, progress, time, form, button, input, textarea, select, option, optgroup, label, fieldset, legend, keygen, command, datalist, menu, output, details, summary
@@ -51,20 +46,20 @@ type PluginNames = keyof PluginTypes
 type PluginCallback = (node: VNode, createElement: CreateElement) => void
 type ComponentNames = keyof IComponents
 
-let Components: {[name in ComponentNames]?: VueClass<Vue>} = {}
+let Components: {[name in ComponentNames]?: VueClass<Vue> | ComponentOptions<Vue>} = {}
 let Plugins: {[name in PluginNames]?: PluginFn} = {}
 
-const registerPlugin: IQuipApi['registerPlugin'] = (name, fn) => {
+export function registerPlugin<PluginName extends PluginNames> (name: PluginName, fn: PluginFn) {
   Plugins[name] = fn
 }
 
-const registerComponent: IQuipApi['registerComponent'] = (name, component) => {
+export function registerComponent<ComponentName extends keyof IComponents> (name: ComponentName, component: VueClass<Vue> | ComponentOptions<Vue>) {
   Components[name] = component
 }
 
 const tags: HtmlTagNames[] = Object.keys(HtmlTags).filter(key => isNaN(key as any)) as HtmlTagNames[]
 
-function QuipFactory ($createElement: CreateElement) {
+export default function QuipFactory ($createElement: CreateElement) {
   let nodeTree: VNode[] = []
   let node: VNode
   let nodeType: string | VueConstructor<Vue>
@@ -82,6 +77,7 @@ function QuipFactory ($createElement: CreateElement) {
   const q: any = () => {
     close()
     const node = nodeTree.pop()
+    nodeDefinition = nodeTree[nodeTree.length - 1]
     return nodeTree.length === 0 ? node : q
   }
 
@@ -149,15 +145,4 @@ export const QuipPlugin = {
   }
 }
 
-// Decorator
-export function Quip (componentName: ComponentNames) {
-  return (definition: VueClass<Vue>) => {
-    registerComponent(componentName, definition)
-  }
-}
-
-const QuipApi: IQuipApi = { registerComponent, registerPlugin }
-
-installPlugins(QuipApi)
-
-export default QuipApi
+installPlugins()

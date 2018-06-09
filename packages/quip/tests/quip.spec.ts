@@ -1,8 +1,21 @@
-import { QuipPlugin } from '../src/index'
+import Quip, { QuipPlugin, registerComponent } from '../src/index'
 import { Vue, Component } from 'vue-property-decorator'
 import { mount } from '@vue/test-utils'
 
 Vue.use(QuipPlugin)
+
+declare module '../src/index' {
+  interface IComponents {
+    'custom': void
+  }
+}
+
+registerComponent('custom', {
+  render () {
+    const { i } = this.$quip
+    return i()()
+  }
+})
 
 @Component
 class MyComponent extends Vue {
@@ -24,7 +37,7 @@ class MyComponent extends Vue {
   }
 }
 
-describe('vue-quip', () => {
+describe('quip', () => {
   const w = mount(MyComponent)
 
   it('creates properly structured dom', () => {
@@ -40,8 +53,8 @@ describe('vue-quip', () => {
           </nav>
         </header>
       </main>
-    `
-    expect(w.html()).to.eq(expectedDom.replace(/\s/g, ''))
+    `.replace(/\s/g, '')
+    expect(w.html()).to.eq(expectedDom)
   })
 
   it('exposes elements via "ref" property', () => {
@@ -55,5 +68,26 @@ describe('vue-quip', () => {
     expect(getElement('li1').nodeName).eq('LI')
     expect(getElement('li2').nodeName).eq('LI')
     expect(getElement('li3').nodeName).eq('LI')
+  })
+
+  it('works with functional components', () => {
+    const w = mount({
+      functional: true,
+      render (h, context) {
+        const { div } = Quip(h)
+        return div()()
+      }
+    })
+    expect(w.html()).eq('<div></div>')
+  })
+
+  it('works with custom components', () => {
+    const w = mount({
+      render (h, context) {
+        const { custom } = this.$quip
+        return custom()()
+      }
+    })
+    expect(w.html()).eq('<i></i>')
   })
 })
