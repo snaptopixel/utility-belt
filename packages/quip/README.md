@@ -1,5 +1,5 @@
 # quip
-Better render functions for Vue through TypeScript and method chaining. No more string templates, JSX, createElement, or .vue files to worry about.
+Better render functions for Vue. No more string templates, JSX, createElement, or .vue files to worry about.
 
 ### Say what?
 Vue supports render functions out of the box, they just don't end up looking very pretty and can be hard to deal with. The concept is simple… You do some work based on the current state, return a tree of VNodes and Vue makes updates where necessary.

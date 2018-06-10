@@ -1,4 +1,6 @@
-# [utility-belt](http://batman.wikia.com/wiki/Utility_Belt) &nbsp; ![CircleCI](https://img.shields.io/circleci/project/github/snaptopixel/utility-belt.svg) ![Codecov](https://img.shields.io/codecov/c/github/snaptopixel/utility-belt.svg)
+![CircleCI](https://img.shields.io/circleci/project/github/snaptopixel/utility-belt.svg) ![Codecov](https://img.shields.io/codecov/c/github/snaptopixel/utility-belt.svg)
+
+# [utility-belt](http://batman.wikia.com/wiki/Utility_Belt)
 
 A collection of tools, mostly [TypeScript](https://github.com/Microsoft/TypeScript) and [Vue](https://github.com/vuejs) related. Published individually via [Lerna](https://github.com/lerna/lerna).
 
