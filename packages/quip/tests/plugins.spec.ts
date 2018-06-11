@@ -7,7 +7,7 @@ Vue.use(QuipPlugin)
 
 declare module '../src/index' {
   interface IComponents {
-    'child': {foo?: string, bar?: string}
+    child: {foo?: string, bar?: string}
   }
 }
 

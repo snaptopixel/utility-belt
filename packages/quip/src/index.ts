@@ -1,4 +1,3 @@
-import { IQuip } from './index'
 import installPlugins from './plugins'
 import Vue, { CreateElement, VNode, VNodeData, VueConstructor, ComponentOptions } from 'vue'
 import { VueClass } from 'vue-class-component/lib/declarations'
@@ -11,15 +10,15 @@ export interface IPlugins<T extends AllTagNames> {
   // Populated via declaration merging
 }
 
-type PluginFn = (...args: any[]) => PluginCallback | void
+export type PluginFn = (...args: any[]) => PluginCallback | void
 
-enum HtmlTags {
+export enum HtmlTags {
   html, head, meta, link, title, base, body, nav, header, footer, main, aside, article, section, h1, h2, h3, h4, h5, h6, hr, ul, ol, li, dl, dt, dd, div, p, pre, blockquote, span, a, em, strong, b, i, u, s, mark, small, del, ins, sup, sub, dfn, code, var, samp, kbd, q, cite, ruby, rt, rp, br, wbr, bdo, bdi, table, caption, tr, td, th, thead, tfoot, tbody, colgroup, col, img, figure, figcaption, video, audio, source, track, iframe, canvas, abbr, address, meter, progress, time, form, button, input, textarea, select, option, optgroup, label, fieldset, legend, keygen, command, datalist, menu, output, details, summary
 }
 
-type HtmlTagNames = keyof typeof HtmlTags
+export type HtmlTagNames = keyof typeof HtmlTags
 
-type HtmlTagProps = {
+export type HtmlTagProps = {
   [k in HtmlTagNames]: void;
 }
 
@@ -27,7 +26,7 @@ export type AllTagProps = HtmlTagProps & IComponents
 export type AllTagNames = keyof AllTagProps
 export type AllPropTypes<T extends AllTagNames> = AllTagProps[T]
 
-type TagFactory = {
+export type TagFactory = {
   [TagName in AllTagNames]: IQuip<TagName>
 }
 
@@ -41,10 +40,10 @@ declare module 'vue/types/vue' {
   }
 }
 
-type PluginTypes = IPlugins<any>
-type PluginNames = keyof PluginTypes
-type PluginCallback = (node: VNode, createElement: CreateElement) => void
-type ComponentNames = keyof IComponents
+export type PluginTypes = IPlugins<any>
+export type PluginNames = keyof PluginTypes
+export type PluginCallback = (node: VNode, createElement: CreateElement) => void
+export type ComponentNames = keyof IComponents
 
 let Components: {[name in ComponentNames]?: VueClass<Vue> | ComponentOptions<Vue>} = {}
 let Plugins: {[name in PluginNames]?: PluginFn} = {}
