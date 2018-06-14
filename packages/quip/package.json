@@ -20,7 +20,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "rm -rf dist && tsc"
   },
   "devDependencies": {
     "@vue/test-utils": "^1.0.0-beta.16",
@@ -29,8 +29,5 @@
     "vue-property-decorator": "^6.1.0",
     "vue-template-compiler": "^2.5.16"
   },
-  "dependencies": {
-    "@types/lodash.merge": "^4.6.3",
-    "lodash.merge": "^4.6.1"
-  }
+  "dependencies": {}
 }
