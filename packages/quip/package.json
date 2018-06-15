@@ -1,6 +1,6 @@
 {
   "name": "@snaptopixel/quip",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Better render functions for Vue with TypeScript",
   "keywords": [
     "vue",
@@ -28,6 +28,5 @@
     "vue-class-component": "^6.2.0",
     "vue-property-decorator": "^6.1.0",
     "vue-template-compiler": "^2.5.16"
-  },
-  "dependencies": {}
+  }
 }

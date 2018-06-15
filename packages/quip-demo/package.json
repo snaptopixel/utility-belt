@@ -1,6 +1,6 @@
 {
   "name": "@snaptopixel/quip-demo",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Example app demonstrating quip with vue",
   "main": "index.js",
   "dependencies": {
