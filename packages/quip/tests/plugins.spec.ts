@@ -7,7 +7,8 @@ Vue.use(QuipPlugin)
 
 declare module '../src/index' {
   interface IComponents {
-    child: {foo?: string, bar?: string}
+    child: {foo?: string, bar?: string},
+    testControl: {isChecked?: boolean, textValue?: string}
   }
 }
 
@@ -24,9 +25,49 @@ export class Child extends Vue {
 registerComponent('child', Child)
 
 @Component
+export class TestControl extends Vue {
+  $refs: {
+    checkbox: HTMLInputElement,
+    textbox: HTMLInputElement
+  }
+  @Prop() isChecked: boolean
+  @Prop() textValue: string
+  render () {
+    const { div } = this.$quip
+    return (
+      div()
+        .input('checkbox')
+          .attr({
+            type: 'checkbox',
+            checked: this.isChecked ? '' : null
+          })
+          .on('change', this.onCheckboxChanged)
+        ()
+        .input('textbox')
+          .attr({
+            type: 'text',
+            value: this.textValue || ''
+          })
+          .on('change', this.onTextChanged)
+        ()
+      ()
+    )
+  }
+  onCheckboxChanged () {
+    this.$emit('input', this.$refs.checkbox.checked)
+  }
+  onTextChanged () {
+    this.$emit('textchange', this.$refs.textbox.value)
+  }
+}
+
+registerComponent('testControl', TestControl)
+
+@Component
 class MyComponent extends Vue {
   public onClick: SinonSpy = sinon.spy()
   public onMouseOver: SinonSpy = sinon.spy()
+  public bindTarget = { enabled: true, label: 'Hello World' }
   render () {
     const { div, li, text } = this.$quip
     return(
@@ -118,6 +159,10 @@ class MyComponent extends Vue {
         .else(() => {
           div('iffalsefn')()
         })
+        .testControl('testControl')
+          .bind(this.bindTarget, 'enabled', 'isChecked') // Uses default "input" event
+          .bind(this.bindTarget, 'label', 'textValue', 'textchange')
+        ()
       ()
     )
   }
@@ -218,6 +263,48 @@ describe('quip plugin', () => {
   describe('data()', () => {
     it('defines properties on VNodeData', () => {
       expect(w.find({ ref: 'data' }).text()).eq('Look at that')
+    })
+  })
+
+  describe('bind()', () => {
+    it('passes values in initially', () => {
+      const c = w.find({ ref: 'testControl' })
+      const checkbox = c.vm.$refs.checkbox as HTMLInputElement
+      const textbox = c.vm.$refs.textbox as HTMLInputElement
+      expect(c.props()).deep.eq({
+        isChecked: true,
+        textValue: 'Hello World'
+      })
+      expect(checkbox.checked).true
+      expect(textbox.value).eq('Hello World')
+    })
+    it('passes values in reactively', () => {
+      const c = w.find({ ref: 'testControl' })
+      const checkbox = c.vm.$refs.checkbox as HTMLInputElement
+      const textbox = c.vm.$refs.textbox as HTMLInputElement
+      w.vm.bindTarget.enabled = false
+      w.vm.bindTarget.label = 'Hi'
+      expect(c.props()).deep.eq({
+        isChecked: false,
+        textValue: 'Hi'
+      })
+      expect(checkbox.checked).false
+      expect(textbox.value).eq('Hi')
+    })
+    it('passes values out', () => {
+      const c = w.find({ ref: 'testControl' })
+      const checkbox = c.find({ ref: 'checkbox' })
+      const textbox = c.find({ ref: 'textbox' })
+      const checkboxEl = checkbox.element as HTMLInputElement
+      const textboxEl = textbox.element as HTMLInputElement
+      expect(checkboxEl.checked).false
+      expect(textboxEl.value).eq('Hi')
+      checkboxEl.checked = true
+      textboxEl.value = 'Yo Adrian!'
+      checkbox.trigger('change')
+      textbox.trigger('change')
+      expect(w.vm.bindTarget.enabled).true
+      expect(w.vm.bindTarget.label).eq('Yo Adrian!')
     })
   })
 })

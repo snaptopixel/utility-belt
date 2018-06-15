@@ -25,6 +25,7 @@ export interface IPlugins<T extends AllTagNames> {
   attr (name: string, value: string): IQuip<T>
   attr (obj: {[attr: string]: string}): IQuip<T>
   data (data: VNodeData): IQuip<T>
+  bind <P> (target: P, value: keyof P, prop: keyof AllTagProps[T], event?: string): IQuip<T>
 }
 
 export type PluginFn = (...args: any[]) => PluginCallback | void
@@ -84,7 +85,12 @@ export default function QuipFactory ($createElement: CreateElement) {
 
   function reset (src?: any) {
     nodeType = src
-    nodeDefinition = {}
+    nodeDefinition = {
+      style: {},
+      on: {},
+      props: {},
+      attrs: {}
+    }
     nodeCallbacks.length = 0
   }
 
@@ -177,7 +183,6 @@ registerPlugin('css', (def: VNodeData, ...params: any[]) => {
 })
 
 registerPlugin('style', (def: VNodeData, ...params: any[]) => {
-  def.style = def.style || {}
   if (typeof params[0] === 'object') {
     def.style = { ...def.style, ...params[0] }
   } else if (typeof params[0] === 'string') {
@@ -186,7 +191,6 @@ registerPlugin('style', (def: VNodeData, ...params: any[]) => {
 })
 
 registerPlugin('on', (def: VNodeData, ...params: any[]) => {
-  def.on = def.on || {}
   if (typeof params[0] === 'object') {
     def.on = { ...def.on, ...params[0] }
   } else if (typeof params[0] === 'string') {
@@ -195,7 +199,6 @@ registerPlugin('on', (def: VNodeData, ...params: any[]) => {
 })
 
 registerPlugin('prop', (def: VNodeData, ...params: any[]) => {
-  def.props = def.props || {}
   if (typeof params[0] === 'object') {
     def.props = { ...def.props, ...params[0] }
   } else if (typeof params[0] === 'string') {
@@ -255,7 +258,6 @@ registerPlugin('else', (def: VNodeData, fn: () => void) => {
 })
 
 registerPlugin('attr', (def: VNodeData, ...params: any[]) => {
-  def.attrs = def.attrs || {}
   if (typeof params[0] === 'object') {
     def.attrs = { ...def.attrs, ...params[0] }
   } else if (typeof params[0] === 'string') {
@@ -267,4 +269,9 @@ registerPlugin('data', (def: VNodeData, data: VNodeData) => {
   Object.keys(data).forEach((key: keyof VNodeData) => {
     def[key] = data[key]
   })
+})
+
+registerPlugin('bind', (def: VNodeData, target: any, value: string, prop: string, event: string = 'input') => {
+  def.props[prop] = target[value]
+  def.on[event] = (newValue: any) => target[value] = newValue
 })
