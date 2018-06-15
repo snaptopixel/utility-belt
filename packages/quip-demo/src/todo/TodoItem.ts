@@ -3,9 +3,7 @@ import { registerComponent } from '@snaptopixel/quip'
 
 declare module '@snaptopixel/quip' {
   interface IComponents {
-    todo: {
-      value: boolean
-    }
+    todo: { complete: boolean, label: string }
   }
 }
 
@@ -14,26 +12,26 @@ class TodoItem extends Vue {
   $refs: {
     checkbox: HTMLInputElement
   }
-  @Prop() value: boolean
+  @Prop() complete: boolean
+  @Prop() label: string
   render () {
     const { label } = this.$quip
-    console.log('render', Object.getOwnPropertyDescriptor(this, 'value'))
     return (
       label()
+        .style('opacity', this.complete ? '0.5' : '')
         .input('checkbox')
           .attr('type', 'checkbox')
-          .attr('checked', this.value ? '' : null)
+          .attr('checked', this.complete ? '' : null)
           .on('change', this.onToggle)
         ()
         .span()
-          .text('Hello')
+          .text(this.label)
         ()
       ()
     )
   }
-  onToggle (event: UIEvent) {
-    event.preventDefault()
-    this.$emit('change', this.$refs.checkbox.checked)
+  onToggle () {
+    this.$emit('input', this.$refs.checkbox.checked)
   }
 }
 

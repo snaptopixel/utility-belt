@@ -1,5 +1,17 @@
 {
   "compilerOptions": {
-    "experimentalDecorators": true
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "inlineSourceMap": true,
+    "lib": [
+      "es5",
+      "es2015.promise",
+      "dom"
+    ],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "target": "es5"
   }
 }
