@@ -1,7 +1,35 @@
 # quip
 Better render functions for Vue. No more string templates, JSX, createElement, or .vue files to worry about.
 
-### Say what?
+<!-- TOC depthFrom:2 -->
+
+- [How it works](#how-it-works)
+- [Setup](#setup)
+  - [Installing Quip](#installing-quip)
+  - [Registering Quip](#registering-quip)
+- [Basic usage](#basic-usage)
+  - [Creating vnodes](#creating-vnodes)
+  - [Referencing vnodes](#referencing-vnodes)
+  - [Nesting vnodes](#nesting-vnodes)
+- [Using plugins](#using-plugins)
+  - [css](#css)
+  - [style](#style)
+  - [on](#on)
+  - [prop](#prop)
+  - [text](#text)
+  - [map](#map)
+  - [switch](#switch)
+    - [case](#case)
+    - [default](#default)
+  - [if](#if)
+    - [else](#else)
+  - [attr](#attr)
+  - [data](#data)
+  - [bind](#bind)
+
+<!-- /TOC -->
+
+### How it works
 Vue supports render functions out of the box, they just don't end up looking very pretty and can be hard to deal with. The concept is simple… You do some work based on the current state, return a tree of VNodes and Vue makes updates where necessary.
 
 With Quip, we're wrapping the typical VNode creation process: `createElement(tagName, data, children)` with chainable function calls and a few TypeScript conventions to make the syntax more approachable, attractive, type-safe and less error-prone.
@@ -108,4 +136,49 @@ button()
     mouseout: this.onMouseOut
   })
 ()
+```
+
+#### prop
+```ts
+// TODO
+```
+#### text
+```ts
+// TODO
+```
+#### map
+```ts
+// TODO
+```
+#### switch
+```ts
+// TODO
+```
+##### case
+```ts
+// TODO
+```
+##### default
+```ts
+// TODO
+```
+#### if
+```ts
+// TODO
+```
+##### else
+```ts
+// TODO
+```
+#### attr
+```ts
+// TODO
+```
+#### data
+```ts
+// TODO
+```
+#### bind
+```ts
+// TODO
 ```
