@@ -1,6 +1,6 @@
 {
   "name": "@snaptopixel/quip",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Better render functions for Vue with TypeScript",
   "keywords": [
     "vue",
@@ -11,14 +11,17 @@
     "hyperscript"
   ],
   "homepage": "https://github.com/snaptopixel/utility-belt/packages/quip",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": "snaptopixel/utility-belt",
   "author": "Casey Corcoran (https://github.com/snaptopixel)",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "scripts": {},
+  "scripts": {
+    "build": "rm -rf dist && tsc"
+  },
   "devDependencies": {
     "@vue/test-utils": "^1.0.0-beta.16",
     "vue": "^2.5.16",
@@ -26,8 +29,5 @@
     "vue-property-decorator": "^6.1.0",
     "vue-template-compiler": "^2.5.16"
   },
-  "dependencies": {
-    "@types/lodash.merge": "^4.6.3",
-    "lodash.merge": "^4.6.1"
-  }
+  "dependencies": {}
 }

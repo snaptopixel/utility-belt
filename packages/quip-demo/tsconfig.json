@@ -13,8 +13,5 @@
     "noImplicitAny": true,
     "noUnusedLocals": true,
     "target": "es5"
-  },
-  "exclude": [
-    "./packages/**/dist/*.d.ts"
-  ]
+  }
 }
