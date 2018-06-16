@@ -45,8 +45,10 @@ let fileList
 function runSuite() {
   // Clear console
   console.log('\x1Bc')
+  // We only want to clear the cache for dependencies outside of node_modules
+  const removeDeps = Object.keys(require.cache).filter(path => path.indexOf('node_modules') === -1);
   // Clear node's require cache so we get fresh dependencies
-  Object.keys( require.cache ).forEach( key => delete require.cache[ key ] )
+  removeDeps.forEach(key => delete require.cache[key])
   // Create a new test runner
   const m = new mocha()
   // Filter out anything that may have sneaked in, we want only tests
