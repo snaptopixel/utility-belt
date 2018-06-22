@@ -1,6 +1,6 @@
 {
   "name": "@snaptopixel/quip",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Better render functions for Vue with TypeScript",
   "keywords": [
     "vue",

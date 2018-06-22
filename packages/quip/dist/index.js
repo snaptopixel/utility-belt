@@ -217,6 +217,16 @@ exports.QuipPlugin = {
         }
     }
 };
+registerComponent('h', {
+    functional: true,
+    props: ['data', 'el'],
+    render: function (createEl, context) {
+        var el = context.props.el;
+        var data = context.data.props.data;
+        delete context.data.props;
+        return createEl(el, __assign({}, context.data, data), context.children);
+    }
+});
 registerPlugin('css', function (def) {
     var params = [];
     for (var _i = 1; _i < arguments.length; _i++) {
@@ -271,6 +281,7 @@ registerPlugin('prop', function (def) {
 });
 registerPlugin('text', function (def, value) {
     return function (vnode, createElement) {
+        vnode.children = vnode.children || [];
         vnode.children.push(createElement('i', value).children[0]);
     };
 });
@@ -330,9 +341,14 @@ registerPlugin('data', function (def, data) {
         def[key] = data[key];
     });
 });
-registerPlugin('bind', function (def, target, value, prop, event) {
+registerPlugin('bindProp', function (def, target, value, prop, event) {
     if (event === void 0) { event = 'input'; }
     def.props[prop] = target[value];
     def.on[event] = function (newValue) { return target[value] = newValue; };
+});
+registerPlugin('bindAttr', function (def, target, value, prop, event) {
+    if (event === void 0) { event = 'input'; }
+    def.attrs[prop] = target[value];
+    def.on[event] = function (event) { return target[value] = event.target[prop]; };
 });
 //# sourceMappingURL=index.js.map

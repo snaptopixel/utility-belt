@@ -1,6 +1,9 @@
-import Vue, { CreateElement, VNode, VNodeData, ComponentOptions } from 'vue';
-import { VueClass } from 'vue-class-component/lib/declarations';
+import { CreateElement, VNode, VNodeData, AsyncComponent, Component } from 'vue';
 export interface IComponents {
+    h: {
+        el: string | Component<any, any, any, any> | AsyncComponent<any, any, any, any> | (() => Component);
+        data: VNodeData;
+    };
 }
 export interface IPlugins<T extends AllTagNames> {
     css(obj: any): IQuip<T>;
@@ -13,20 +16,20 @@ export interface IPlugins<T extends AllTagNames> {
     }): IQuip<T>;
     prop<K extends keyof AllTagProps[T]>(name: K, value: AllTagProps[T][K]): IQuip<T>;
     prop(props: AllPropTypes<T>): IQuip<T>;
+    attr(name: string, value: string): IQuip<T>;
+    attr(obj: {
+        [attr: string]: string;
+    }): IQuip<T>;
     text(value: string): IQuip<T>;
     map<I>(items: I[], factory: (item: I) => void): IQuip<T>;
-    callback(fn: (node: VNode) => void): IQuip<T>;
     switch(value: any): IQuip<T>;
     case(value: any, fn: () => void): IQuip<T>;
     default(fn: (value: any) => void): IQuip<T>;
     if(value: boolean | (() => boolean), fn: () => void): IQuip<T>;
     else(fn: () => void): IQuip<T>;
-    attr(name: string, value: string): IQuip<T>;
-    attr(obj: {
-        [attr: string]: string;
-    }): IQuip<T>;
     data(data: VNodeData): IQuip<T>;
-    bind<P>(target: P, value: keyof P, prop: keyof AllTagProps[T], event?: string): IQuip<T>;
+    bindProp<P>(target: P, value: keyof P, prop: keyof AllTagProps[T], event?: string): IQuip<T>;
+    bindAttr<P>(target: P, value: keyof P, attr: string, event?: string): IQuip<T>;
 }
 export declare type PluginFn = (...args: any[]) => PluginCallback | void;
 export declare enum HtmlTags {
@@ -154,7 +157,7 @@ export declare type PluginNames = keyof PluginTypes;
 export declare type PluginCallback = (node: VNode, createElement: CreateElement) => void;
 export declare type ComponentNames = keyof IComponents;
 export declare function registerPlugin<PluginName extends PluginNames>(name: PluginName, fn: PluginFn): void;
-export declare function registerComponent(name: ComponentNames, component: VueClass<Vue> | ComponentOptions<Vue>): void;
+export declare function registerComponent(name: ComponentNames, component: Component<any, any, any, any> | AsyncComponent<any, any, any, any>): void;
 export default function QuipFactory($createElement: CreateElement): any;
 export declare const QuipPlugin: {
     install(Vue: any): void;
