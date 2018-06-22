@@ -160,15 +160,31 @@ class MyComponent extends Vue {
           div('iffalsefn')()
         })
         .testControl('testControl')
-          .bind(this.bindTarget, 'enabled', 'isChecked') // Uses default "input" event
-          .bind(this.bindTarget, 'label', 'textValue', 'textchange')
+          .bindProp(this.bindTarget, 'enabled', 'isChecked') // Uses default "input" event
+          .bindProp(this.bindTarget, 'label', 'textValue', 'textchange')
+        ()
+        .input('bindInput')
+          .attr('type', 'checkbox')
+          .bindAttr(this.bindTarget, 'enabled', 'checked', 'change')
+        ()
+        .h('createEl')
+          .prop({
+            el: 'a',
+            data: {
+              attrs: {
+                href: '#'
+              }
+            }
+          })
+          .style('fontWeight', 'bold')
+          .text('Hello There')
         ()
       ()
     )
   }
 }
 
-describe('quip plugin', () => {
+describe('quip plugins', () => {
   const w = mount(MyComponent)
 
   describe('css()', () => {
@@ -266,45 +282,47 @@ describe('quip plugin', () => {
     })
   })
 
-  describe('bind()', () => {
-    it('passes values in initially', () => {
-      const c = w.find({ ref: 'testControl' })
-      const checkbox = c.vm.$refs.checkbox as HTMLInputElement
-      const textbox = c.vm.$refs.textbox as HTMLInputElement
-      expect(c.props()).deep.eq({
-        isChecked: true,
-        textValue: 'Hello World'
-      })
-      expect(checkbox.checked).true
-      expect(textbox.value).eq('Hello World')
-    })
-    it('passes values in reactively', () => {
-      const c = w.find({ ref: 'testControl' })
-      const checkbox = c.vm.$refs.checkbox as HTMLInputElement
-      const textbox = c.vm.$refs.textbox as HTMLInputElement
-      w.vm.bindTarget.enabled = false
-      w.vm.bindTarget.label = 'Hi'
-      expect(c.props()).deep.eq({
-        isChecked: false,
-        textValue: 'Hi'
-      })
-      expect(checkbox.checked).false
-      expect(textbox.value).eq('Hi')
-    })
-    it('passes values out', () => {
+  describe('bindProp()', () => {
+    it('allows two-way binding', () => {
       const c = w.find({ ref: 'testControl' })
       const checkbox = c.find({ ref: 'checkbox' })
       const textbox = c.find({ ref: 'textbox' })
       const checkboxEl = checkbox.element as HTMLInputElement
       const textboxEl = textbox.element as HTMLInputElement
-      expect(checkboxEl.checked).false
-      expect(textboxEl.value).eq('Hi')
+      // Values in
+      expect(c.props()).deep.eq({
+        isChecked: true,
+        textValue: 'Hello World'
+      })
+      expect(checkboxEl.checked).true
+      expect(textboxEl.value).eq('Hello World')
+      // Values out
       checkboxEl.checked = true
       textboxEl.value = 'Yo Adrian!'
       checkbox.trigger('change')
       textbox.trigger('change')
       expect(w.vm.bindTarget.enabled).true
       expect(w.vm.bindTarget.label).eq('Yo Adrian!')
+    })
+  })
+
+  describe('bindAttr()', () => {
+    it('allows two-way binding', () => {
+      const c = w.find({ ref: 'bindInput' })
+      const checkbox = c.element as HTMLInputElement
+      expect(checkbox.checked).true
+      checkbox.checked = false
+      c.trigger('change')
+      expect(w.vm.bindTarget.enabled).false
+      checkbox.checked = true
+      c.trigger('change')
+      expect(w.vm.bindTarget.enabled).true
+    })
+  })
+
+  describe('h()', () => {
+    it('can create arbitrary vnodes', () => {
+      expect(w.find({ ref: 'createEl' }).html()).eq('<a href="#" style="font-weight: bold;">Hello There</a>')
     })
   })
 })

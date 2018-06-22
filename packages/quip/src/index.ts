@@ -1,8 +1,8 @@
-import Vue, { CreateElement, VNode, VNodeData, VueConstructor, ComponentOptions } from 'vue'
+import Vue, { CreateElement, VNode, VNodeData, VueConstructor, ComponentOptions, AsyncComponent, Component } from 'vue'
 import { VueClass } from 'vue-class-component/lib/declarations'
 
 export interface IComponents {
-  // Populated via declaration merging
+  h: {el: string | Component<any, any, any, any> | AsyncComponent<any, any, any, any> | (() => Component), data: VNodeData}
 }
 
 export interface IPlugins<T extends AllTagNames> {
@@ -14,18 +14,18 @@ export interface IPlugins<T extends AllTagNames> {
   on (events: {[event: string]: (...params: any[]) => void}): IQuip<T>
   prop<K extends keyof AllTagProps[T]> (name: K, value: AllTagProps[T][K]): IQuip<T>
   prop (props: AllPropTypes<T>): IQuip<T>
+  attr (name: string, value: string): IQuip<T>
+  attr (obj: {[attr: string]: string}): IQuip<T>
   text (value: string): IQuip<T>
   map<I> (items: I[], factory: (item: I) => void): IQuip<T>
-  callback (fn: (node: VNode) => void): IQuip<T>
   switch (value: any): IQuip<T>
   case (value: any, fn: () => void): IQuip<T>
   default (fn: (value: any) => void): IQuip<T>
   if (value: boolean | (() => boolean), fn: () => void): IQuip<T>
   else (fn: () => void): IQuip<T>
-  attr (name: string, value: string): IQuip<T>
-  attr (obj: {[attr: string]: string}): IQuip<T>
   data (data: VNodeData): IQuip<T>
-  bind <P> (target: P, value: keyof P, prop: keyof AllTagProps[T], event?: string): IQuip<T>
+  bindProp<P> (target: P, value: keyof P, prop: keyof AllTagProps[T], event?: string): IQuip<T>
+  bindAttr<P> (target: P, value: keyof P, attr: string, event?: string): IQuip<T>
 }
 
 export type PluginFn = (...args: any[]) => PluginCallback | void
@@ -70,7 +70,7 @@ export function registerPlugin<PluginName extends PluginNames> (name: PluginName
   Plugins[name] = fn
 }
 
-export function registerComponent (name: ComponentNames, component: VueClass<Vue> | ComponentOptions<Vue>) {
+export function registerComponent (name: ComponentNames, component: Component<any, any, any, any> | AsyncComponent<any, any, any, any>) {
   (Components as any)[name] = component
 }
 
@@ -167,6 +167,17 @@ export const QuipPlugin = {
   }
 }
 
+registerComponent('h', {
+  functional: true,
+  props: ['data', 'el'],
+  render (createEl: CreateElement, context: any) {
+    const el = context.props.el
+    const data = context.data.props.data
+    delete context.data.props
+    return createEl(el, { ...context.data, ...data }, context.children)
+  }
+})
+
 registerPlugin('css', (def: VNodeData, ...params: any[]) => {
   def.class = def.class || {}
   if (typeof params[0] === 'object') {
@@ -208,6 +219,7 @@ registerPlugin('prop', (def: VNodeData, ...params: any[]) => {
 
 registerPlugin('text', (def: VNodeData, value: string) => {
   return (vnode, createElement) => {
+    vnode.children = vnode.children || []
     vnode.children.push(createElement('i', value).children[0])
   }
 })
@@ -271,7 +283,12 @@ registerPlugin('data', (def: VNodeData, data: VNodeData) => {
   })
 })
 
-registerPlugin('bind', (def: VNodeData, target: any, value: string, prop: string, event: string = 'input') => {
+registerPlugin('bindProp', (def: VNodeData, target: any, value: string, prop: string, event: string = 'input') => {
   def.props[prop] = target[value]
   def.on[event] = (newValue: any) => target[value] = newValue
+})
+
+registerPlugin('bindAttr', (def: VNodeData, target: any, value: string, prop: string, event: string = 'input') => {
+  def.attrs[prop] = target[value]
+  def.on[event] = (event: UIEvent) => target[value] = (event.target as any)[prop]
 })
