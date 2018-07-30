@@ -46,6 +46,7 @@ let filesBeingWatched = {}
 let suitesToRun = []
 
 const runSuite = (suite) => {
+  console.log('runSuite', suite)
   if (!includes(suitesToRun, suite)) {
     suite = path.resolve(suite)
     delete require.cache[suite]
@@ -69,6 +70,8 @@ const watchDependencies = () => {
 
 const runSuites = debounce(() => {
   if (isWatching) console.log('\x1Bc') // Clear console
+
+  console.log('runSuites', suitesToRun)
 
   const m = new mocha()
   suitesToRun.map(filepath => {
@@ -113,6 +116,8 @@ let watchQueue
 const watchTargets = {}
 
 const testGlob = `${process.cwd()}/${argv.t}`
+
+console.log('testGlob', testGlob)
 
 // Monkey-patching native require so we can require files other than js
 Module.prototype.require = function( modulePath ) {
