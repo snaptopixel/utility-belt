@@ -47,7 +47,7 @@ let suitesToRun = []
 
 const runSuite = (suite) => {
   console.log('runSuite', suite)
-  if (!includes(suitesToRun, suite)) {
+  if (!includes(suitesToRun, suite) && suite.indexOf('node_modules') === -1) {
     suite = path.resolve(suite)
     delete require.cache[suite]
     suitesToRun.push(suite)
