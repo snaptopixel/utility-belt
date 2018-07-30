@@ -47,7 +47,7 @@ let suitesToRun = []
 
 const runSuite = (suite) => {
   console.log('runSuite', suite)
-  if (!includes(suitesToRun, suite) && suite.indexOf('node_modules') === -1) {
+  if (!includes(suitesToRun, suite)) {
     suite = path.resolve(suite)
     delete require.cache[suite]
     suitesToRun.push(suite)
@@ -148,7 +148,7 @@ Module.prototype.require = function( modulePath ) {
 // When tests are added or changed, run them
 chokidar.watch(argv.t, {
   persistent: true,
-  ignored: '**/node_modules/**'
+  ignored: /.*node_modules.*/
 })
   .on('add', file => runSuite(file))
   .on('change', file => {
