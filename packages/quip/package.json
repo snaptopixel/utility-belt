@@ -23,10 +23,12 @@
     "build": "rm -rf dist && tsc"
   },
   "devDependencies": {
-    "@vue/test-utils": "^1.0.0-beta.16",
+    "@vue/test-utils": "^1.0.0-beta.21",
     "vue": "^2.5.16",
     "vue-class-component": "^6.2.0",
-    "vue-property-decorator": "^6.1.0",
-    "vue-template-compiler": "^2.5.16"
+    "vue-property-decorator": "^6.1.0"
+  },
+  "dependencies": {
+    "vue-test-utils": "^1.0.0-beta.11"
   }
 }
