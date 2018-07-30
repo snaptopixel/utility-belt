@@ -46,7 +46,6 @@ let filesBeingWatched = {}
 let suitesToRun = []
 
 const runSuite = (suite) => {
-  console.log('runSuite', suite)
   if (!includes(suitesToRun, suite)) {
     suite = path.resolve(suite)
     delete require.cache[suite]
@@ -70,8 +69,6 @@ const watchDependencies = () => {
 
 const runSuites = debounce(() => {
   if (isWatching) console.log('\x1Bc') // Clear console
-
-  console.log('runSuites', suitesToRun)
 
   const m = new mocha()
   suitesToRun.map(filepath => {
@@ -116,8 +113,7 @@ let watchQueue
 const watchTargets = {}
 
 const testGlob = `${process.cwd()}/${argv.t}`
-
-console.log('testGlob', testGlob)
+const npmMatch = /.*node_modules.*/
 
 // Monkey-patching native require so we can require files other than js
 Module.prototype.require = function( modulePath ) {
@@ -132,7 +128,7 @@ Module.prototype.require = function( modulePath ) {
     // Collect dependencies
     const fullPath = require.resolve(modulePath, {paths: [currentDir]})
     // Ignore dependencies in node_modules
-    if (fullPath.indexOf('node_modules') === -1) {
+    if (!fullPath.match(npmMatch)) {
       watchQueue.push(fullPath)
     }
   }
@@ -148,7 +144,7 @@ Module.prototype.require = function( modulePath ) {
 // When tests are added or changed, run them
 chokidar.watch(argv.t, {
   persistent: true,
-  ignored: /.*node_modules.*/
+  ignored: npmMatch
 })
   .on('add', file => runSuite(file))
   .on('change', file => {
