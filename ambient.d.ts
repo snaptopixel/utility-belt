@@ -6,3 +6,7 @@
 declare const sinon: any;
 declare const expect: Chai.ExpectStatic;
 declare const require: any;
+
+declare module '*.vue' {
+  
+}
