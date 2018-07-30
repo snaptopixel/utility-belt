@@ -6,7 +6,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "test": "nyc testify -t packages/**/*.spec.ts",
-    "start": "testify -t packages/**/*.spec.ts -s packages/**/*.ts -w",
+    "start": "testify -t packages/**/*.spec.ts -w",
     "release": "lerna publish",
     "ls": "lerna ls"
   },
