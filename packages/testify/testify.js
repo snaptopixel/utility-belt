@@ -159,7 +159,7 @@ Module.prototype.require = function( modulePath ) {
   const extension = path.extname(modulePath).slice(1)
 
   if (extension in moduleLoaders) {
-    return moduleLoaders[extension](currentDir, modulePath, this)
+    return moduleLoaders[extension](currentDir, modulePath)
   }
 
   return Module._load( modulePath, this )
