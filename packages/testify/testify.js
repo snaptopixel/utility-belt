@@ -140,7 +140,7 @@ Module.prototype.require = function( modulePath ) {
   // Handle aliases
   for (const alias of Object.keys(aliases)) {
     if (modulePath.indexOf(alias) === 0) {
-      modulePath = modulePath.replace(alias, aliases[alias])
+      modulePath = modulePath.replace(alias, path.resolve(aliases[alias]))
       break;
     }
   }
