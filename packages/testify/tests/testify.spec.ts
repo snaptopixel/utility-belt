@@ -23,6 +23,21 @@ describe('testify', () => {
     expect(div).to.have.class('test-class')
   })
 
+  describe('requiring files', () => {
+    it('can require ts files', () => {
+      expect(window.myGlobal).true
+    })
+    it('can require js files', () => {
+      expect(window.myJSGlobal).true
+    })
+    it('can create chai plugins', () => {
+      expect('foo').to.be.foo
+      expect('bar').not.to.be.foo
+      expect('bar').to.be.bar
+      expect('foo').not.to.be.bar
+    })
+  })
+
   describe('vue support', () => {
     it('compiles typescript w/template', () => {
       expect(shallowMount(basicComponent).element)

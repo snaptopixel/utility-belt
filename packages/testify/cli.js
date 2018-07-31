@@ -24,6 +24,7 @@ const chokidar = require('chokidar')
 const minimatch = require('minimatch')
 const debounce = require('lodash/debounce')
 const includes = require('lodash/includes')
+const isFunction = require('lodash/isFunction')
 
 require('ts-node/register')
 require('source-map-support/register')
@@ -38,7 +39,14 @@ chai.use(require('sinon-chai'))
 chai.use(require('chai-dom'))
 
 if (argv.r) {
-  argv.r.forEach(s => require(path.resolve(s)))
+  argv.r.map(s => {
+    const required = require(path.resolve(s))
+    if (isFunction(required)) {
+      required(chai)
+    } else if (isFunction(required.default)) {
+      required.default(chai)
+    }
+  })
 }
 
 let isWatching = argv.watch

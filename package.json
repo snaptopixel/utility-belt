@@ -5,13 +5,13 @@
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "test": "nyc testify --test-glob packages/**/*.spec.ts",
-    "start": "testify -t packages/**/*.spec.ts -s packages/**/*.ts -w",
+    "test": "nyc testify -t packages/**/*.spec.ts -r test.bootstrap.ts test.bootstrap.js",
+    "start": "testify -t packages/**/*.spec.ts -s packages/**/*.ts  -r test.bootstrap.ts test.bootstrap.js -w",
     "release": "lerna publish",
     "ls": "lerna ls"
   },
   "devDependencies": {
-    "lerna": "^2.11.0",
+    "lerna": "^3.0.0-rc.0",
     "nyc": "^12.0.1",
     "@snaptopixel/testify": "^0.3.0",
     "tslint": "^5.10.0",
