@@ -14,7 +14,6 @@ declare global {
 }
 
 export default function initTests (api: IRequireApi) {
-  console.log('INIT TEST', api)
   // Expose a global property
   window.myGlobal = true
   // Make an alias
