@@ -2,7 +2,6 @@ const compiler = require('vue-template-compiler');
 const fs = require('fs');
 const path = require('path');
 const requireFromString = require('require-from-string');
-const Module = require('module')
 
 const compilers = {}
 
