@@ -14,7 +14,7 @@ Simple command-line interface plus opinionated configuration for testing browser
     - [Watch mode (re-run tests when files are changed)](#watch-mode-re-run-tests-when-files-are-changed)
     - [Single test run w/coverage](#single-test-run-wcoverage)
 - [Customizing the test environment](#customizing-the-test-environment)
-  - [Extending Chai](#extending-chai)
+  - [Require API](#require-api)
 
 <!-- /TOC -->
 
@@ -84,20 +84,20 @@ describe('globals', () => {
   })
 })
 ```
-#### Extending Chai
-You can also extend Chai by installing plugins when you return a function from your require file(s)
+#### Require API
+If your require file exports a function it will be called with an api object that allows for a few customization options:
 
 **TypeScript example**
 ```ts
-import MyPlugin from 'my-chai-plugin'
-export default function extendChai(chai: Chai.ChaiStatic) {
-  chai.use(MyPlugin)
+export default function initTests(api: IRequireApi) {
+  // Add chai plugins via api.chai.use(MyPlugin)
+  // Add require aliases via api.addAlias('~'. './path/to/files')
 }
 ```
 **JavaScript example**
-```ts
-const MyPlugin = require('my-chai-plugin')
-module.exports = function extendChai(chai) {
-  chai.use(MyPlugin)
+```js
+module.exports = function initTests(api) {
+  // Add chai plugins via api.chai.use(MyPlugin)
+  // Add require aliases via api.addAlias('~'. './path/to/files')
 }
 ```

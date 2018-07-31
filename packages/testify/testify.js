@@ -38,13 +38,22 @@ global.expect = chai.expect
 chai.use(require('sinon-chai'))
 chai.use(require('chai-dom'))
 
+const aliases = {}
+
+const requireApi = {
+  chai,
+  addAlias(alias, actual) {
+    aliases[alias] = actual
+  }
+}
+
 if (argv.r) {
   argv.r.map(s => {
     const required = require(path.resolve(s))
     if (isFunction(required)) {
-      required(chai)
+      required(requireApi)
     } else if (isFunction(required.default)) {
-      required.default(chai)
+      required.default(requireApi)
     }
   })
 }
@@ -128,6 +137,13 @@ Module.prototype.require = function( modulePath ) {
   assert( typeof modulePath === 'string', 'path must be a string' )
   assert( modulePath, 'missing path' )
   const currentDir = path.dirname(this.filename)
+  // Handle aliases
+  for (const alias of Object.keys(aliases)) {
+    if (modulePath.indexOf(alias) === 0) {
+      modulePath = modulePath.replace(alias, aliases[alias])
+      break;
+    }
+  }
   // If this is a test file
   if (minimatch(modulePath, testGlob)) {
     // Reset the dependency queue
@@ -143,7 +159,7 @@ Module.prototype.require = function( modulePath ) {
   const extension = path.extname(modulePath).slice(1)
 
   if (extension in moduleLoaders) {
-    return moduleLoaders[extension](currentDir, modulePath)
+    return moduleLoaders[extension](currentDir, modulePath, this)
   }
 
   return Module._load( modulePath, this )

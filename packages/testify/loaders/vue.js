@@ -2,6 +2,7 @@ const compiler = require('vue-template-compiler');
 const fs = require('fs');
 const path = require('path');
 const requireFromString = require('require-from-string');
+const Module = require('module')
 
 const compilers = {}
 
@@ -12,7 +13,7 @@ compilers.ts = (script) => {
 }
 
 module.exports = function requireVue(currentDir, filePath) {
-  const vuePath = path.resolve(currentDir, filePath);
+  const vuePath = require.resolve(filePath, {paths: [currentDir]});
   const src = fs.readFileSync(vuePath).toString();
   const {script, template} = compiler.parseComponent(src);
   if (compilers[script.lang]) {
