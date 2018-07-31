@@ -1,5 +1,5 @@
-import basicComponent from './fixtures/basic-component.vue'
-import classComponent from './fixtures/class-component.vue'
+import basicComponent from '~/fixtures/basic-component.vue'
+import classComponent from '~/fixtures/class-component.vue'
 import { shallowMount } from '@vue/test-utils'
 
 describe('testify', () => {

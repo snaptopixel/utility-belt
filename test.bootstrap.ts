@@ -1,3 +1,5 @@
+import { IRequireApi } from './packages/testify'
+
 declare global {
   interface Window {
     myGlobal: boolean,
@@ -11,11 +13,13 @@ declare global {
   }
 }
 
-export default function initTests (chai: Chai.ChaiStatic) {
+export default function initTests (api: IRequireApi) {
   // Expose a global property
   window.myGlobal = true
+  // Make an alias
+  api.addAlias('~', './packages/testify/tests')
   // Create a silly plugin to make sure chai works
-  chai.use(function FooPlugin ({ Assertion }) {
+  api.chai.use(function FooPlugin ({ Assertion }) {
     Assertion.addProperty('foo', function () {
       this.assert(
         this._obj === 'foo',

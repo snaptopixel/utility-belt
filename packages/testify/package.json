@@ -1,8 +1,9 @@
 {
   "name": "@snaptopixel/testify",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Easily test browser-ish Typescript projects with mocha",
-  "main": "./cli.js",
+  "main": "./testify.js",
+  "types": "./testify.d.ts",
   "scripts": {
     "test": "testify"
   },
@@ -25,7 +26,7 @@
   },
   "homepage": "https://github.com/snaptopixel/utility-belt#readme",
   "bin": {
-    "testify": "./cli.js"
+    "testify": "./testify.js"
   },
   "dependencies": {
     "@types/chai": "^4.1.3",
