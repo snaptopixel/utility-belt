@@ -149,7 +149,7 @@ export interface IQuip<T extends AllTagNames> extends TagFactory, IPlugins<T> {
 }
 declare module 'vue/types/vue' {
     interface Vue {
-        $quip: IQuip<any>;
+        readonly $quip: IQuip<any>;
     }
 }
 export declare type PluginTypes = IPlugins<any>;

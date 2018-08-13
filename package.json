@@ -5,8 +5,8 @@
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "test": "nyc testify -t packages/**/*.spec.ts -r test.bootstrap.ts test.bootstrap.js",
-    "start": "testify -t packages/**/*.spec.ts -s packages/**/*.ts  -r test.bootstrap.ts test.bootstrap.js -w",
+    "test": "nyc testify -t 'packages/**/*.spec.ts' -r test.bootstrap.ts test.bootstrap.js",
+    "start": "testify -t 'packages/**/*.spec.ts' -r test.bootstrap.ts test.bootstrap.js -w",
     "release": "lerna publish",
     "ls": "lerna ls"
   },
@@ -19,8 +19,8 @@
     "typescript": "^2.8.3"
   },
   "nyc": {
-    "include": ["packages/**/*.ts"],
-    "extension": [".ts"],
+    "include": ["packages/**/*.ts", "packages/**/*.vue"],
+    "extension": [".ts", ".vue"],
     "require": ["ts-node/register"],
     "reporter": ["json"],
     "exclude": ["packages/**/*.spec.ts"],

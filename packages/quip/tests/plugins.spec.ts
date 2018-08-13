@@ -69,7 +69,7 @@ class MyComponent extends Vue {
   public onMouseOver: SinonSpy = sinon.spy()
   public bindTarget = { enabled: true, label: 'Hello World' }
   render () {
-    const { div, li, text } = this.$quip
+    const { div, li, span } = this.$quip
     return(
       div()
         .div('data')
@@ -124,60 +124,57 @@ class MyComponent extends Vue {
         ()
         .div('switch')
           .switch('b')
-            .case('a', () => text('div a'))
+            .case('a', () => span().text('div a')())
             .case('b', () => {
-              text('div b')
+              span().text('div b')()
               div('nested-switch')
                 .switch('foo')
-                  .case('bar', () => text('bar'))
-                  .case('foo', () => text('foo'))
+                  .case('bar', () => span().text('bar')())
+                  .case('foo', () => span().text('foo')())
               ()
             })
             .case('b', () => {
-              text('yeye')
+              span('yeye')()
             })
-            .case('c', () => text('div c'))
+            .case('c', () => span('div c')())
             .default(value => {
-              text(`default ${value}`)
+              span(`default ${value}`)()
             })
         ()
         .div('default-switch')
           .switch('x')
           .default(value => {
-            text(`default ${value}`)
+            span().text(`default ${value}`)()
           })
         ()
         .if(true, () => {
-          div('iftrue')()
+          div('iftrue')
+          ()
         })
         .else(() => {
-          div('iffalse')()
+          div('iffalse')
+          ()
         })
         .if(() => false, () => {
-          div('iftruefn')()
+          div('iftruefn')
+          ()
         })
         .else(() => {
-          div('iffalsefn')()
+          div('iffalsefn')
+          ()
         })
         .testControl('testControl')
-          .bindProp(this.bindTarget, 'enabled', 'isChecked') // Uses default "input" event
-          .bindProp(this.bindTarget, 'label', 'textValue', 'textchange')
+          .bindProp('isChecked', this.bindTarget, 'enabled') // Uses default "input" event
+          .bindProp('textValue', this.bindTarget, 'label', 'textchange')
         ()
         .input('bindInput')
           .attr('type', 'checkbox')
-          .bindAttr(this.bindTarget, 'enabled', 'checked', 'change')
+          .bindAttr('checked', this.bindTarget, 'enabled', 'change')
         ()
-        .h('createEl')
-          .prop({
-            el: 'a',
-            data: {
-              attrs: {
-                href: '#'
-              }
-            }
-          })
-          .style('fontWeight', 'bold')
+        .createElement('a', 'createEl')
           .text('Hello There')
+          .attr('href', '#')
+          .style('fontWeight', 'bold')
         ()
       ()
     )
@@ -320,7 +317,7 @@ describe('quip plugins', () => {
     })
   })
 
-  describe('h()', () => {
+  describe('createElement()', () => {
     it('can create arbitrary vnodes', () => {
       expect(w.find({ ref: 'createEl' }).html()).eq('<a href="#" style="font-weight: bold;">Hello There</a>')
     })

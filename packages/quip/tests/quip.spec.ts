@@ -22,13 +22,13 @@ class MyComponent extends Vue {
   render () {
     const { main } = this.$quip
     return(
-      main('main')
-        .header('header')
-          .nav('nav')
-            .ul('ul')
-              .li('li1')()
-              .li('li2')()
-              .li('li3')()
+      main('main-el')
+        .header('header-el')
+          .nav('nav-el')
+            .ul('ul-el')
+              .li('li1-el')()
+              .li('li2-el')()
+              .li('li3-el')()
             ()
           ()
         ()
@@ -61,13 +61,13 @@ describe('quip', () => {
     const getElement = (ref: string) => {
       return w.vm.$refs[ref] as Element
     }
-    expect(getElement('main').nodeName).eq('MAIN')
-    expect(getElement('header').nodeName).eq('HEADER')
-    expect(getElement('nav').nodeName).eq('NAV')
-    expect(getElement('ul').nodeName).eq('UL')
-    expect(getElement('li1').nodeName).eq('LI')
-    expect(getElement('li2').nodeName).eq('LI')
-    expect(getElement('li3').nodeName).eq('LI')
+    expect(getElement('main-el').nodeName).eq('MAIN')
+    expect(getElement('header-el').nodeName).eq('HEADER')
+    expect(getElement('nav-el').nodeName).eq('NAV')
+    expect(getElement('ul-el').nodeName).eq('UL')
+    expect(getElement('li1-el').nodeName).eq('LI')
+    expect(getElement('li2-el').nodeName).eq('LI')
+    expect(getElement('li3-el').nodeName).eq('LI')
   })
 
   it('works with functional components', () => {

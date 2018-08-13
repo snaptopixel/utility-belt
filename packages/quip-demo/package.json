@@ -1,0 +1,31 @@
+{
+  "name": "quip-demo",
+  "version": "1.0.0",
+  "description": "Example todo app demonstrating quip",
+  "main": "src/index.ts",
+  "repository": "snaptopixel/utility-belt",
+  "author": "Casey Corcoran (https://github.com/snaptopixel)",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "webpack-serve ./webpack.dev.js"
+  },
+  "dependencies": {
+    "@snaptopixel/quip": "^0.2.0",
+    "css-loader": "^1.0.0",
+    "html-webpack-plugin": "^3.2.0",
+    "stylus": "^0.54.5",
+    "stylus-loader": "^3.0.2",
+    "ts-loader": "^4.4.2",
+    "typescript": "^3.0.1",
+    "vue": "^2.5.17",
+    "vue-class-component": "^6.2.0",
+    "vue-loader": "^15.3.0",
+    "vue-property-decorator": "^7.0.0",
+    "vue-style-loader": "^4.1.1",
+    "webpack": "^4.16.5",
+    "webpack-command": "^0.4.1",
+    "webpack-merge": "^4.1.4",
+    "webpack-serve": "^2.0.2"
+  }
+}

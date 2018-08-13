@@ -1,8 +1,8 @@
-import Vue, { CreateElement, VNode, VNodeData, VueConstructor, ComponentOptions, AsyncComponent, Component } from 'vue'
+import Vue, { CreateElement, VNode, VNodeData, ComponentOptions, AsyncComponent, Component } from 'vue'
 import { VueClass } from 'vue-class-component/lib/declarations'
 
 export interface IComponents {
-  h: {el: string | Component<any, any, any, any> | AsyncComponent<any, any, any, any> | (() => Component), data: VNodeData}
+  // Declared elsewhere
 }
 
 export interface IPlugins<T extends AllTagNames> {
@@ -24,11 +24,12 @@ export interface IPlugins<T extends AllTagNames> {
   if (value: boolean | (() => boolean), fn: () => void): IQuip<T>
   else (fn: () => void): IQuip<T>
   data (data: VNodeData): IQuip<T>
-  bindProp<P> (target: P, value: keyof P, prop: keyof AllTagProps[T], event?: string): IQuip<T>
-  bindAttr<P> (target: P, value: keyof P, attr: string, event?: string): IQuip<T>
+  text (textContent: string): IQuip<T>
+  bindProp<P> (prop: keyof AllTagProps[T], target: P, value: keyof P, event?: string): IQuip<T>
+  bindAttr<P> (attr: string, target: P, value: keyof P, event?: string): IQuip<T>
 }
 
-export type PluginFn = (...args: any[]) => PluginCallback | void
+export type PluginFn = (def: NodeDefinition, ...args: any[]) => void
 
 export enum HtmlTags {
   html, head, meta, link, title, base, body, nav, header, footer, main, aside, article, section, h1, h2, h3, h4, h5, h6, hr, ul, ol, li, dl, dt, dd, div, p, pre, blockquote, span, a, em, strong, b, i, u, s, mark, small, del, ins, sup, sub, dfn, code, var, samp, kbd, q, cite, ruby, rt, rp, br, wbr, bdo, bdi, table, caption, tr, td, th, thead, tfoot, tbody, colgroup, col, img, figure, figcaption, video, audio, source, track, iframe, canvas, abbr, address, meter, progress, time, form, button, input, textarea, select, option, optgroup, label, fieldset, legend, keygen, command, datalist, menu, output, details, summary
@@ -48,19 +49,22 @@ export type TagFactory = {
   [TagName in AllTagNames]: IQuip<TagName>
 }
 
-export interface IQuip<T extends AllTagNames> extends TagFactory, IPlugins<T> {
-  (ref?: string): IQuip<T>
+export interface ICreateable {
+  createElement (nodeType: any, textContent?: string): IQuip<any>
+}
+
+export interface IQuip<T extends AllTagNames> extends TagFactory, IPlugins<T>, ICreateable {
+  (textContent?: string): IQuip<T>
 }
 
 declare module 'vue/types/vue' {
   interface Vue {
-    $quip: IQuip<any>
+    readonly $quip: IQuip<any>
   }
 }
 
 export type PluginTypes = IPlugins<any>
 export type PluginNames = keyof PluginTypes
-export type PluginCallback = (node: VNode, createElement: CreateElement) => void
 export type ComponentNames = keyof IComponents
 
 let Components: {[name in ComponentNames]?: VueClass<Vue> | ComponentOptions<Vue>} = {}
@@ -76,32 +80,51 @@ export function registerComponent (name: ComponentNames, component: Component<an
 
 const tags: HtmlTagNames[] = Object.keys(HtmlTags).filter(key => isNaN(key as any)) as HtmlTagNames[]
 
+class NodeDefinition {
+  public data: VNodeData = {}
+  public children: Array<NodeDefinition | string> = []
+  constructor (
+    public type: any,
+    ref: string
+  ) {
+    if (ref) { this.data.ref = ref }
+  }
+}
+
 export default function QuipFactory ($createElement: CreateElement) {
-  let nodeTree: VNode[] = []
-  let node: VNode
-  let nodeType: string | VueConstructor<Vue>
-  let nodeDefinition: VNodeData
-  let nodeCallbacks: PluginCallback[] = []
+  const stack: NodeDefinition[] = []
 
-  function reset (src?: any) {
-    nodeType = src
-    nodeDefinition = {
-      style: {},
-      on: {},
-      props: {},
-      attrs: {}
+  function createNode (definition: NodeDefinition | string): VNode | string {
+    if (typeof definition === 'string') {
+      return definition
+    } else {
+      const children = definition.children.map(createNode)
+      return $createElement(
+        definition.type,
+        definition.data,
+        children
+      )
     }
-    nodeCallbacks.length = 0
   }
 
-  reset()
-
-  const q: any = () => {
-    close()
-    const node = nodeTree.pop()
-    nodeDefinition = nodeTree[nodeTree.length - 1]
-    return nodeTree.length === 0 ? node : q
+  function open (type: any, ref?: string) {
+    const item = new NodeDefinition(type, ref)
+    const parent = stack[stack.length - 1]
+    stack.push(item)
+    if (parent) {
+      parent.children.push(item)
+    }
+    return close
   }
+
+  function close () {
+    const cur = stack.pop()
+    return stack.length === 0
+      ? createNode(cur)
+      : close
+  }
+
+  const q: any = close
 
   tags.forEach(tag => {
     q[tag] = (ref?: string) => {
@@ -112,10 +135,7 @@ export default function QuipFactory ($createElement: CreateElement) {
 
   for (const name of Object.keys(Plugins)) {
     q[name] = (...args: any[]) => {
-      const callback = Plugins[name as PluginNames](nodeDefinition, ...args)
-      if (callback) {
-        nodeCallbacks.push(callback)
-      }
+      Plugins[name as PluginNames](stack[stack.length - 1], ...args)
       return q
     }
   }
@@ -127,29 +147,9 @@ export default function QuipFactory ($createElement: CreateElement) {
     }
   }
 
-  function open (src: any, ref?: string) {
-    close()
-    reset(src)
-    nodeDefinition.ref = ref
+  q.createElement = (nodeType: any, ref?: string) => {
+    open(nodeType, ref)
     return q
-  }
-
-  function close () {
-    if (nodeType) {
-      node = $createElement(nodeType, nodeDefinition, [])
-      const parent = nodeTree[nodeTree.length - 1]
-      if (parent) {
-        nodeTree.push(node)
-        parent.children.push(node)
-      } else {
-        nodeTree = [node]
-      }
-      nodeType = null
-    }
-    for (let callback of nodeCallbacks) {
-      callback(node, $createElement)
-    }
-    nodeCallbacks.length = 0
   }
 
   return q
@@ -167,24 +167,13 @@ export const QuipPlugin = {
   }
 }
 
-registerComponent('h', {
-  functional: true,
-  props: ['data', 'el'],
-  render (createEl: CreateElement, context: any) {
-    const el = context.props.el
-    const data = context.data.props.data
-    delete context.data.props
-    return createEl(el, { ...context.data, ...data }, context.children)
-  }
-})
-
-registerPlugin('css', (def: VNodeData, ...params: any[]) => {
-  def.class = def.class || {}
+registerPlugin('css', ({ data }, ...params: any[]) => {
+  data.class = data.class || {}
   if (typeof params[0] === 'object') {
-    def.class = { ...def.class, ...params[0] }
+    data.class = { ...data.class, ...params[0] }
   } else if (typeof params[0] === 'string') {
-    def.class = {
-      ...def.class,
+    data.class = {
+      ...data.class,
       ...params.reduce((obj, className) => {
         obj[className] = true
         return obj
@@ -193,45 +182,41 @@ registerPlugin('css', (def: VNodeData, ...params: any[]) => {
   }
 })
 
-registerPlugin('style', (def: VNodeData, ...params: any[]) => {
+registerPlugin('style', ({ data }, ...params: any[]) => {
+  data.style = data.style || {}
   if (typeof params[0] === 'object') {
-    def.style = { ...def.style, ...params[0] }
+    data.style = { ...data.style, ...params[0] }
   } else if (typeof params[0] === 'string') {
-    (def.style as any)[params[0]] = params[1]
+    (data.style as any)[params[0]] = params[1]
   }
 })
 
-registerPlugin('on', (def: VNodeData, ...params: any[]) => {
+registerPlugin('on', ({ data }, ...params: any[]) => {
+  data.on = data.on || {}
   if (typeof params[0] === 'object') {
-    def.on = { ...def.on, ...params[0] }
+    data.on = { ...data.on, ...params[0] }
   } else if (typeof params[0] === 'string') {
-    def.on[params[0]] = params[1]
+    data.on[params[0]] = params[1]
   }
 })
 
-registerPlugin('prop', (def: VNodeData, ...params: any[]) => {
+registerPlugin('prop', ({ data }, ...params: any[]) => {
+  data.props = data.props || {}
   if (typeof params[0] === 'object') {
-    def.props = { ...def.props, ...params[0] }
+    data.props = { ...data.props, ...params[0] }
   } else if (typeof params[0] === 'string') {
-    def.props[params[0]] = params[1]
+    data.props[params[0]] = params[1]
   }
 })
 
-registerPlugin('text', (def: VNodeData, value: string) => {
-  return (vnode, createElement) => {
-    vnode.children = vnode.children || []
-    vnode.children.push(createElement('i', value).children[0])
-  }
-})
-
-registerPlugin('map', (def: VNodeData, items: any[], fn: (item: any) => void) => {
+registerPlugin('map', ({ data }, items: any[], fn: (item: any) => void) => {
   items.map(fn)
 })
 
 let switchValue: any
 let switchActive: boolean
 
-registerPlugin('switch', (def: VNodeData, value: any) => {
+registerPlugin('switch', ({ data }, value: any) => {
   switchValue = value
   switchActive = true
   return () => {
@@ -239,14 +224,14 @@ registerPlugin('switch', (def: VNodeData, value: any) => {
   }
 })
 
-registerPlugin('case', (def: VNodeData, value: any, fn: () => void) => {
+registerPlugin('case', ({ data }, value: any, fn: () => void) => {
   if (switchActive && switchValue === value) {
     fn()
     switchActive = false
   }
 })
 
-registerPlugin('default', (def: VNodeData, fn: (value: any) => void) => {
+registerPlugin('default', ({ data }, fn: (value: any) => void) => {
   if (switchActive) {
     fn(switchValue)
     switchActive = false
@@ -255,7 +240,7 @@ registerPlugin('default', (def: VNodeData, fn: (value: any) => void) => {
 
 let doElse: boolean
 
-registerPlugin('if', (def: VNodeData, value: boolean | (() => boolean), fn: () => void) => {
+registerPlugin('if', ({ data }, value: boolean | (() => boolean), fn: () => void) => {
   if (typeof value === 'function') {
     value = value()
   }
@@ -265,30 +250,39 @@ registerPlugin('if', (def: VNodeData, value: boolean | (() => boolean), fn: () =
   }
 })
 
-registerPlugin('else', (def: VNodeData, fn: () => void) => {
+registerPlugin('else', ({ data }, fn: () => void) => {
   if (doElse) { fn() }
 })
 
-registerPlugin('attr', (def: VNodeData, ...params: any[]) => {
+registerPlugin('attr', ({ data }, ...params: any[]) => {
+  data.attrs = data.attrs || {}
   if (typeof params[0] === 'object') {
-    def.attrs = { ...def.attrs, ...params[0] }
+    data.attrs = { ...data.attrs, ...params[0] }
   } else if (typeof params[0] === 'string') {
-    def.attrs[params[0]] = params[1]
+    data.attrs[params[0]] = params[1]
   }
 })
 
-registerPlugin('data', (def: VNodeData, data: VNodeData) => {
-  Object.keys(data).forEach((key: keyof VNodeData) => {
-    def[key] = data[key]
+registerPlugin('data', ({ data }, customData: VNodeData) => {
+  Object.keys(customData).forEach((key: keyof VNodeData) => {
+    data[key] = customData[key]
   })
 })
 
-registerPlugin('bindProp', (def: VNodeData, target: any, value: string, prop: string, event: string = 'input') => {
-  def.props[prop] = target[value]
-  def.on[event] = (newValue: any) => target[value] = newValue
+registerPlugin('text', (def, textContent: string) => {
+  def.children.push(textContent)
 })
 
-registerPlugin('bindAttr', (def: VNodeData, target: any, value: string, prop: string, event: string = 'input') => {
-  def.attrs[prop] = target[value]
-  def.on[event] = (event: UIEvent) => target[value] = (event.target as any)[prop]
+registerPlugin('bindProp', ({ data }, prop: string, target: any, value: string, event: string = 'input') => {
+  data.props = data.props || {}
+  data.on = data.on || {}
+  data.props[prop] = target[value]
+  data.on[event] = (newValue: any) => target[value] = newValue
+})
+
+registerPlugin('bindAttr', ({ data }, attr: string, target: any, value: string, event: string = 'input') => {
+  data.attrs = data.attrs || {}
+  data.on = data.on || {}
+  data.attrs[attr] = target[value]
+  data.on[event] = (event: UIEvent) => target[value] = (event.target as any)[attr]
 })
