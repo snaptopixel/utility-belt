@@ -1,9 +1,5 @@
-import { CreateElement, VNode, VNodeData, AsyncComponent, Component } from 'vue';
+import { CreateElement, VNodeData, AsyncComponent, Component } from 'vue';
 export interface IComponents {
-    h: {
-        el: string | Component<any, any, any, any> | AsyncComponent<any, any, any, any> | (() => Component);
-        data: VNodeData;
-    };
 }
 export interface IPlugins<T extends AllTagNames> {
     css(obj: any): IQuip<T>;
@@ -28,10 +24,11 @@ export interface IPlugins<T extends AllTagNames> {
     if(value: boolean | (() => boolean), fn: () => void): IQuip<T>;
     else(fn: () => void): IQuip<T>;
     data(data: VNodeData): IQuip<T>;
-    bindProp<P>(target: P, value: keyof P, prop: keyof AllTagProps[T], event?: string): IQuip<T>;
-    bindAttr<P>(target: P, value: keyof P, attr: string, event?: string): IQuip<T>;
+    text(textContent: string): IQuip<T>;
+    bindProp<P>(prop: keyof AllTagProps[T], target: P, value: keyof P, event?: string): IQuip<T>;
+    bindAttr<P>(attr: string, target: P, value: keyof P, event?: string): IQuip<T>;
 }
-export declare type PluginFn = (...args: any[]) => PluginCallback | void;
+export declare type PluginFn = (def: NodeDefinition, ...args: any[]) => void;
 export declare enum HtmlTags {
     html = 0,
     head = 1,
@@ -144,8 +141,11 @@ export declare type AllPropTypes<T extends AllTagNames> = AllTagProps[T];
 export declare type TagFactory = {
     [TagName in AllTagNames]: IQuip<TagName>;
 };
-export interface IQuip<T extends AllTagNames> extends TagFactory, IPlugins<T> {
-    (ref?: string): IQuip<T>;
+export interface ICreateable {
+    createElement(nodeType: any, textContent?: string): IQuip<any>;
+}
+export interface IQuip<T extends AllTagNames> extends TagFactory, IPlugins<T>, ICreateable {
+    (textContent?: string): IQuip<T>;
 }
 declare module 'vue/types/vue' {
     interface Vue {
@@ -154,10 +154,15 @@ declare module 'vue/types/vue' {
 }
 export declare type PluginTypes = IPlugins<any>;
 export declare type PluginNames = keyof PluginTypes;
-export declare type PluginCallback = (node: VNode, createElement: CreateElement) => void;
 export declare type ComponentNames = keyof IComponents;
 export declare function registerPlugin<PluginName extends PluginNames>(name: PluginName, fn: PluginFn): void;
 export declare function registerComponent(name: ComponentNames, component: Component<any, any, any, any> | AsyncComponent<any, any, any, any>): void;
+export declare class NodeDefinition {
+    type: any;
+    data: VNodeData;
+    children: Array<NodeDefinition | string>;
+    constructor(type: any, ref: string);
+}
 export default function QuipFactory($createElement: CreateElement): any;
 export declare const QuipPlugin: {
     install(Vue: any): void;

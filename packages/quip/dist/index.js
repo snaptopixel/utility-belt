@@ -122,29 +122,45 @@ function registerComponent(name, component) {
 }
 exports.registerComponent = registerComponent;
 var tags = Object.keys(HtmlTags).filter(function (key) { return isNaN(key); });
-function QuipFactory($createElement) {
-    var nodeTree = [];
-    var node;
-    var nodeType;
-    var nodeDefinition;
-    var nodeCallbacks = [];
-    function reset(src) {
-        nodeType = src;
-        nodeDefinition = {
-            style: {},
-            on: {},
-            props: {},
-            attrs: {}
-        };
-        nodeCallbacks.length = 0;
+var NodeDefinition = /** @class */ (function () {
+    function NodeDefinition(type, ref) {
+        this.type = type;
+        this.data = {};
+        this.children = [];
+        if (ref) {
+            this.data.ref = ref;
+        }
     }
-    reset();
-    var q = function () {
-        close();
-        var node = nodeTree.pop();
-        nodeDefinition = nodeTree[nodeTree.length - 1];
-        return nodeTree.length === 0 ? node : q;
-    };
+    return NodeDefinition;
+}());
+exports.NodeDefinition = NodeDefinition;
+function QuipFactory($createElement) {
+    var stack = [];
+    function createNode(definition) {
+        if (typeof definition === 'string') {
+            return definition;
+        }
+        else {
+            var children = definition.children.map(createNode);
+            return $createElement(definition.type, definition.data, children);
+        }
+    }
+    function open(type, ref) {
+        var item = new NodeDefinition(type, ref);
+        var parent = stack[stack.length - 1];
+        stack.push(item);
+        if (parent) {
+            parent.children.push(item);
+        }
+        return close;
+    }
+    function close() {
+        var cur = stack.pop();
+        return stack.length === 0
+            ? createNode(cur)
+            : close;
+    }
+    var q = close;
     tags.forEach(function (tag) {
         q[tag] = function (ref) {
             open(tag, ref);
@@ -157,10 +173,7 @@ function QuipFactory($createElement) {
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i] = arguments[_i];
             }
-            var callback = Plugins[name_1].apply(Plugins, [nodeDefinition].concat(args));
-            if (callback) {
-                nodeCallbacks.push(callback);
-            }
+            Plugins[name_1].apply(Plugins, [stack[stack.length - 1]].concat(args));
             return q;
         };
     };
@@ -178,31 +191,10 @@ function QuipFactory($createElement) {
         var name_2 = _c[_b];
         _loop_2(name_2);
     }
-    function open(src, ref) {
-        close();
-        reset(src);
-        nodeDefinition.ref = ref;
+    q.createElement = function (nodeType, ref) {
+        open(nodeType, ref);
         return q;
-    }
-    function close() {
-        if (nodeType) {
-            node = $createElement(nodeType, nodeDefinition, []);
-            var parent_1 = nodeTree[nodeTree.length - 1];
-            if (parent_1) {
-                nodeTree.push(node);
-                parent_1.children.push(node);
-            }
-            else {
-                nodeTree = [node];
-            }
-            nodeType = null;
-        }
-        for (var _i = 0, nodeCallbacks_1 = nodeCallbacks; _i < nodeCallbacks_1.length; _i++) {
-            var callback = nodeCallbacks_1[_i];
-            callback(node, $createElement);
-        }
-        nodeCallbacks.length = 0;
-    }
+    };
     return q;
 }
 exports.default = QuipFactory;
@@ -217,100 +209,96 @@ exports.QuipPlugin = {
         }
     }
 };
-registerComponent('h', {
-    functional: true,
-    props: ['data', 'el'],
-    render: function (createEl, context) {
-        var el = context.props.el;
-        var data = context.data.props.data;
-        delete context.data.props;
-        return createEl(el, __assign({}, context.data, data), context.children);
-    }
-});
-registerPlugin('css', function (def) {
+registerPlugin('css', function (_a) {
+    var data = _a.data;
     var params = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         params[_i - 1] = arguments[_i];
     }
-    def.class = def.class || {};
+    data.class = data.class || {};
     if (typeof params[0] === 'object') {
-        def.class = __assign({}, def.class, params[0]);
+        data.class = __assign({}, data.class, params[0]);
     }
     else if (typeof params[0] === 'string') {
-        def.class = __assign({}, def.class, params.reduce(function (obj, className) {
+        data.class = __assign({}, data.class, params.reduce(function (obj, className) {
             obj[className] = true;
             return obj;
         }, {}));
     }
 });
-registerPlugin('style', function (def) {
+registerPlugin('style', function (_a) {
+    var data = _a.data;
     var params = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         params[_i - 1] = arguments[_i];
     }
+    data.style = data.style || {};
     if (typeof params[0] === 'object') {
-        def.style = __assign({}, def.style, params[0]);
+        data.style = __assign({}, data.style, params[0]);
     }
     else if (typeof params[0] === 'string') {
-        def.style[params[0]] = params[1];
+        data.style[params[0]] = params[1];
     }
 });
-registerPlugin('on', function (def) {
+registerPlugin('on', function (_a) {
+    var data = _a.data;
     var params = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         params[_i - 1] = arguments[_i];
     }
+    data.on = data.on || {};
     if (typeof params[0] === 'object') {
-        def.on = __assign({}, def.on, params[0]);
+        data.on = __assign({}, data.on, params[0]);
     }
     else if (typeof params[0] === 'string') {
-        def.on[params[0]] = params[1];
+        data.on[params[0]] = params[1];
     }
 });
-registerPlugin('prop', function (def) {
+registerPlugin('prop', function (_a) {
+    var data = _a.data;
     var params = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         params[_i - 1] = arguments[_i];
     }
+    data.props = data.props || {};
     if (typeof params[0] === 'object') {
-        def.props = __assign({}, def.props, params[0]);
+        data.props = __assign({}, data.props, params[0]);
     }
     else if (typeof params[0] === 'string') {
-        def.props[params[0]] = params[1];
+        data.props[params[0]] = params[1];
     }
 });
-registerPlugin('text', function (def, value) {
-    return function (vnode, createElement) {
-        vnode.children = vnode.children || [];
-        vnode.children.push(createElement('i', value).children[0]);
-    };
-});
-registerPlugin('map', function (def, items, fn) {
+registerPlugin('map', function (_a, items, fn) {
+    var data = _a.data;
     items.map(fn);
 });
 var switchValue;
 var switchActive;
-registerPlugin('switch', function (def, value) {
+registerPlugin('switch', function (_a, value) {
+    var data = _a.data;
     switchValue = value;
     switchActive = true;
     return function () {
         switchActive = false;
     };
 });
-registerPlugin('case', function (def, value, fn) {
+registerPlugin('case', function (_a, value, fn) {
+    var data = _a.data;
     if (switchActive && switchValue === value) {
         fn();
         switchActive = false;
     }
 });
-registerPlugin('default', function (def, fn) {
+registerPlugin('default', function (_a, fn) {
+    var data = _a.data;
     if (switchActive) {
         fn(switchValue);
         switchActive = false;
     }
 });
 var doElse;
-registerPlugin('if', function (def, value, fn) {
+registerPlugin('if', function (_a, value, fn) {
+    var data = _a.data;
     if (typeof value === 'function') {
         value = value();
     }
@@ -319,36 +307,49 @@ registerPlugin('if', function (def, value, fn) {
         fn();
     }
 });
-registerPlugin('else', function (def, fn) {
+registerPlugin('else', function (_a, fn) {
+    var data = _a.data;
     if (doElse) {
         fn();
     }
 });
-registerPlugin('attr', function (def) {
+registerPlugin('attr', function (_a) {
+    var data = _a.data;
     var params = [];
     for (var _i = 1; _i < arguments.length; _i++) {
         params[_i - 1] = arguments[_i];
     }
+    data.attrs = data.attrs || {};
     if (typeof params[0] === 'object') {
-        def.attrs = __assign({}, def.attrs, params[0]);
+        data.attrs = __assign({}, data.attrs, params[0]);
     }
     else if (typeof params[0] === 'string') {
-        def.attrs[params[0]] = params[1];
+        data.attrs[params[0]] = params[1];
     }
 });
-registerPlugin('data', function (def, data) {
-    Object.keys(data).forEach(function (key) {
-        def[key] = data[key];
+registerPlugin('data', function (_a, customData) {
+    var data = _a.data;
+    Object.keys(customData).forEach(function (key) {
+        data[key] = customData[key];
     });
 });
-registerPlugin('bindProp', function (def, target, value, prop, event) {
-    if (event === void 0) { event = 'input'; }
-    def.props[prop] = target[value];
-    def.on[event] = function (newValue) { return target[value] = newValue; };
+registerPlugin('text', function (def, textContent) {
+    def.children.push(textContent);
 });
-registerPlugin('bindAttr', function (def, target, value, prop, event) {
+registerPlugin('bindProp', function (_a, prop, target, value, event) {
+    var data = _a.data;
     if (event === void 0) { event = 'input'; }
-    def.attrs[prop] = target[value];
-    def.on[event] = function (event) { return target[value] = event.target[prop]; };
+    data.props = data.props || {};
+    data.on = data.on || {};
+    data.props[prop] = target[value];
+    data.on[event] = function (newValue) { return target[value] = newValue; };
+});
+registerPlugin('bindAttr', function (_a, attr, target, value, event) {
+    var data = _a.data;
+    if (event === void 0) { event = 'input'; }
+    data.attrs = data.attrs || {};
+    data.on = data.on || {};
+    data.attrs[attr] = target[value];
+    data.on[event] = function (event) { return target[value] = event.target[attr]; };
 });
 //# sourceMappingURL=index.js.map

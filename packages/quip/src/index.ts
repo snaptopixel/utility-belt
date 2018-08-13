@@ -80,7 +80,7 @@ export function registerComponent (name: ComponentNames, component: Component<an
 
 const tags: HtmlTagNames[] = Object.keys(HtmlTags).filter(key => isNaN(key as any)) as HtmlTagNames[]
 
-class NodeDefinition {
+export class NodeDefinition {
   public data: VNodeData = {}
   public children: Array<NodeDefinition | string> = []
   constructor (
