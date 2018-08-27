@@ -1,40 +1,39 @@
 import { Vue, Component } from 'vue-property-decorator'
 import { QuipPlugin } from '@snaptopixel/quip'
+import { normalize, setupPage } from 'csstips'
+import { cssRaw, cssRule } from 'typestyle'
+import '@/components/TodoList'
 
 Vue.use(QuipPlugin)
 
-interface ITodo {
-  label: string
-  done?: boolean
-}
+cssRaw(`@import url('//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600');`)
+normalize()
+setupPage('#app')
+cssRule('body', {
+  fontFamily: `'Source Sans Pro', Helvetica, sans-serif`,
+  fontWeight: 300
+} as any)
 
 @Component
-class TodoList extends Vue {
-  todos: ITodo[] = [
-    { label: 'Hello', done: false },
-    { label: 'World', done: false }
+class App extends Vue {
+  todos = [
+    { label: 'Item A', done: false },
+    { label: 'Item B', done: true },
+    { label: 'Item C', done: false }
   ]
   render () {
-    const { ul, li } = this.$quip
-    return(
-      ul()
-        .map(this.todos, (todo) => {
-          li()
-            .text(todo.label)
-            .input()
-              .attr('type', 'checkbox')
-              .bindAttr(todo, 'done', 'checked', 'change')
-            ()
-          ()
-        })
+    const { TodoList } = this.$quip
+    return (
+      TodoList()
+        .bindProp('todos', this, 'todos', 'change')
       ()
     )
   }
 }
 
-export default new Vue({
-  el: 'app',
+const app = new Vue({
+  el: '#app',
   render (h) {
-    return h(TodoList)
+    return h(App)
   }
 })

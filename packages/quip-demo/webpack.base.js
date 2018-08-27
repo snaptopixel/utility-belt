@@ -1,5 +1,4 @@
 const path = require('path');
-const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
 module.exports = {
   resolve: {
@@ -11,38 +10,35 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.vue$/,
-        loader: 'vue-loader'
-      },
-      {
         test: /\.ts$/,
         loader: 'ts-loader',
         options: {
-          appendTsSuffixTo: [/\.vue$/],
           onlyCompileBundledFiles: true
         }
       },
       {
-        test: /\.styl(us)?$/,
+        test: /\.svg$/,
         use: [
           {
-            loader: "css-loader",
-            options: {
-              sourceMap: true
-            }
+            loader: 'raw-loader'
           },
           {
-            loader: "stylus-loader",
+            loader: 'svgo-loader',
             options: {
-              sourceMap: true,
-              preferPathResolver: 'webpack',
+              plugins: [
+                { removeViewBox: false },
+                { removeXMLNS: true },
+                { removeDoctype: true },
+                { removeAttrs: { attrs: 'svg:(width|height)' } },
+                { removeTitle: true },
+                { convertColors: { shorthex: false } },
+                { convertPathData: false },
+                { removeUnknownsAndDefaults: true }
+              ]
             }
           }
-        ],
+        ]
       }
     ]
-  },
-  plugins: [
-    new VueLoaderPlugin()
-  ]
+  }
 }
