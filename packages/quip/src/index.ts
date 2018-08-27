@@ -1,5 +1,6 @@
-import Vue, { CreateElement, VNode, VNodeData, ComponentOptions, AsyncComponent, Component } from 'vue'
+import Vue, { VNode, VNodeData, ComponentOptions, AsyncComponent, Component, CreateElement } from 'vue'
 import { VueClass } from 'vue-class-component/lib/declarations'
+import { ScopedSlot } from 'vue/types/vnode'
 
 export interface IComponents {
   // Declared elsewhere
@@ -14,8 +15,8 @@ export interface IPlugins<T extends AllTagNames> {
   on (events: {[event: string]: (...params: any[]) => void}): IQuip<T>
   prop<K extends keyof AllTagProps[T]> (name: K, value: AllTagProps[T][K]): IQuip<T>
   prop (props: AllPropTypes<T>): IQuip<T>
-  attr (name: string, value: string): IQuip<T>
-  attr (obj: {[attr: string]: string}): IQuip<T>
+  attr (name: string, value: string | boolean): IQuip<T>
+  attr (obj: {[attr: string]: string | boolean}): IQuip<T>
   text (value: string): IQuip<T>
   map<I> (items: I[], factory: (item: I) => void): IQuip<T>
   switch (value: any): IQuip<T>
@@ -24,7 +25,8 @@ export interface IPlugins<T extends AllTagNames> {
   if (value: boolean | (() => boolean), fn: () => void): IQuip<T>
   else (fn: () => void): IQuip<T>
   data (data: VNodeData): IQuip<T>
-  text (textContent: string): IQuip<T>
+  text (value: string): IQuip<T>
+  html (value: string): IQuip<T>
   bindProp<P> (prop: keyof AllTagProps[T], target: P, value: keyof P, event?: string): IQuip<T>
   bindAttr<P> (attr: string, target: P, value: keyof P, event?: string): IQuip<T>
 }
@@ -32,7 +34,7 @@ export interface IPlugins<T extends AllTagNames> {
 export type PluginFn = (def: NodeDefinition, ...args: any[]) => void
 
 export enum HtmlTags {
-  html, head, meta, link, title, base, body, nav, header, footer, main, aside, article, section, h1, h2, h3, h4, h5, h6, hr, ul, ol, li, dl, dt, dd, div, p, pre, blockquote, span, a, em, strong, b, i, u, s, mark, small, del, ins, sup, sub, dfn, code, var, samp, kbd, q, cite, ruby, rt, rp, br, wbr, bdo, bdi, table, caption, tr, td, th, thead, tfoot, tbody, colgroup, col, img, figure, figcaption, video, audio, source, track, iframe, canvas, abbr, address, meter, progress, time, form, button, input, textarea, select, option, optgroup, label, fieldset, legend, keygen, command, datalist, menu, output, details, summary
+  head, meta, link, title, base, body, nav, header, footer, main, aside, article, section, h1, h2, h3, h4, h5, h6, hr, ul, ol, li, dl, dt, dd, div, p, pre, blockquote, span, a, em, strong, b, i, u, s, mark, small, del, ins, sup, sub, dfn, code, var, samp, kbd, q, cite, ruby, rt, rp, br, wbr, bdo, bdi, table, caption, tr, td, th, thead, tfoot, tbody, colgroup, col, img, figure, figcaption, video, audio, source, track, iframe, canvas, abbr, address, meter, progress, time, form, button, input, textarea, select, option, optgroup, label, fieldset, legend, keygen, command, datalist, menu, output, details, summary, template
 }
 
 export type HtmlTagNames = keyof typeof HtmlTags
@@ -49,12 +51,14 @@ export type TagFactory = {
   [TagName in AllTagNames]: IQuip<TagName>
 }
 
-export interface ICreateable {
-  createElement (nodeType: any, textContent?: string): IQuip<any>
+export interface IQuip<T extends AllTagNames> {
+  createElement (nodeType: any, ref?: string): IQuip<any>
+  slot (nameOrRenderFn: string | SlotRenderFn, renderFn?: SlotRenderFn): IQuip<any>
+  insertSlot (name?: string, scope?: {[prop: string]: any}): IQuip<any>
 }
 
-export interface IQuip<T extends AllTagNames> extends TagFactory, IPlugins<T>, ICreateable {
-  (textContent?: string): IQuip<T>
+export interface IQuip<T extends AllTagNames> extends TagFactory, IPlugins<T> {
+  (ref?: string): IQuip<T>
 }
 
 declare module 'vue/types/vue' {
@@ -78,50 +82,93 @@ export function registerComponent (name: ComponentNames, component: Component<an
   (Components as any)[name] = component
 }
 
+export function Quip (target: any) {
+  registerComponent(target.name as never, target)
+  return target
+}
+
 const tags: HtmlTagNames[] = Object.keys(HtmlTags).filter(key => isNaN(key as any)) as HtmlTagNames[]
 
 export class NodeDefinition {
   public data: VNodeData = {}
-  public children: Array<NodeDefinition | string> = []
+  public children: Array<NodeDefinition | string | SlotDefinition> = []
   constructor (
     public type: any,
+    public parent: NodeDefinition,
     ref: string
   ) {
     if (ref) { this.data.ref = ref }
   }
 }
 
-export default function QuipFactory ($createElement: CreateElement) {
-  const stack: NodeDefinition[] = []
+export interface IScopedSlots {
+  [key: string]: ScopedSlot
+}
 
-  function createNode (definition: NodeDefinition | string): VNode | string {
-    if (typeof definition === 'string') {
-      return definition
-    } else {
+export interface ISlots {
+  [key: string]: VNode[]
+}
+
+export type SlotRenderFn = ($quip: IQuip<any>, scope: {[prop: string]: any}) => IQuip<any>
+
+export class SlotDefinition {
+  constructor (
+    public parent: NodeDefinition,
+    public name: string,
+    public scope?: {[prop: string]: any}
+  ) {
+
+  }
+}
+
+function err (message: string) {
+  throw new Error(`[Quip Error] ${message}`)
+}
+
+export function QuipFactory ($createElement: CreateElement, $slots: ISlots, $scopedSlots: IScopedSlots) {
+  const stack: NodeDefinition[] = []
+  let activeDefinition: NodeDefinition
+
+  function createNode (definition: NodeDefinition | string | SlotDefinition): VNode | string | VNode[] {
+    if (definition instanceof NodeDefinition) {
       const children = definition.children.map(createNode)
       return $createElement(
         definition.type,
         definition.data,
         children
       )
+    } else if (definition instanceof SlotDefinition) {
+      if ($scopedSlots && $scopedSlots[definition.name]) {
+        const renderFn = $scopedSlots[definition.name] as any
+        return renderFn.__quip__
+          ? renderFn(q, definition.scope)
+          : renderFn(definition.scope)
+      } else if ($slots && $slots[definition.name]) {
+        return $slots[definition.name]
+      } else {
+        err(`Slot not found! The slot "${definition.name}" was referenced but has not been defined`)
+      }
+    } else {
+      return definition
     }
   }
 
   function open (type: any, ref?: string) {
-    const item = new NodeDefinition(type, ref)
-    const parent = stack[stack.length - 1]
-    stack.push(item)
+    const parent = activeDefinition
+    activeDefinition = new NodeDefinition(type, parent, ref)
+    stack.push(activeDefinition)
     if (parent) {
-      parent.children.push(item)
+      parent.children.push(activeDefinition)
     }
     return close
   }
 
   function close () {
     const cur = stack.pop()
-    return stack.length === 0
-      ? createNode(cur)
-      : close
+    activeDefinition = stack[stack.length - 1]
+    return cur.parent
+      ? close
+      : createNode(cur)
   }
 
   const q: any = close
@@ -135,7 +182,7 @@ export default function QuipFactory ($createElement: CreateElement) {
 
   for (const name of Object.keys(Plugins)) {
     q[name] = (...args: any[]) => {
-      Plugins[name as PluginNames](stack[stack.length - 1], ...args)
+      Plugins[name as PluginNames](activeDefinition, ...args)
       return q
     }
   }
@@ -152,6 +199,26 @@ export default function QuipFactory ($createElement: CreateElement) {
     return q
   }
 
+  q.slot = (name: string | SlotRenderFn, renderFn: SlotRenderFn) => {
+    if (typeof name !== 'string') {
+      renderFn = name
+      name = 'default'
+    } else if (!renderFn) {
+      err('No render function provided! You must pass a render function when defining a slot')
+    }
+    (renderFn as any).__quip__ = true
+    const { data } = activeDefinition
+    data.scopedSlots = data.scopedSlots || {}
+    data.scopedSlots[name] = renderFn as any
+    return q
+  }
+
+  q.insertSlot = (name = 'default', scope?: {[prop: string]: any}) => {
+    const parent = activeDefinition
+    parent.children.push(new SlotDefinition(parent, name, scope))
+    return q
+  }
+
   return q
 }
 
@@ -160,7 +227,7 @@ export const QuipPlugin = {
     if ('$quip' in Vue.prototype === false) {
       Object.defineProperty(Vue.prototype, '$quip', {
         get () {
-          return this.__quip__ = this.__quip__ || QuipFactory(this.$createElement)
+          return this.__quip__ = this.__quip__ || QuipFactory(this.$createElement, this.$slots, this.$scopedSlots)
         }
       })
     }
@@ -187,7 +254,7 @@ registerPlugin('style', ({ data }, ...params: any[]) => {
   if (typeof params[0] === 'object') {
     data.style = { ...data.style, ...params[0] }
   } else if (typeof params[0] === 'string') {
-    (data.style as any)[params[0]] = params[1]
+    data.style[params[0]] = params[1]
   }
 })
 
@@ -209,14 +276,14 @@ registerPlugin('prop', ({ data }, ...params: any[]) => {
   }
 })
 
-registerPlugin('map', ({ data }, items: any[], fn: (item: any) => void) => {
+registerPlugin('map', (_def, items: any[], fn: (item: any) => void) => {
   items.map(fn)
 })
 
 let switchValue: any
 let switchActive: boolean
 
-registerPlugin('switch', ({ data }, value: any) => {
+registerPlugin('switch', (_def, value: any) => {
   switchValue = value
   switchActive = true
   return () => {
@@ -224,14 +291,14 @@ registerPlugin('switch', ({ data }, value: any) => {
   }
 })
 
-registerPlugin('case', ({ data }, value: any, fn: () => void) => {
+registerPlugin('case', (_def, value: any, fn: () => void) => {
   if (switchActive && switchValue === value) {
     fn()
     switchActive = false
   }
 })
 
-registerPlugin('default', ({ data }, fn: (value: any) => void) => {
+registerPlugin('default', (_def, fn: (value: any) => void) => {
   if (switchActive) {
     fn(switchValue)
     switchActive = false
@@ -240,7 +307,7 @@ registerPlugin('default', ({ data }, fn: (value: any) => void) => {
 
 let doElse: boolean
 
-registerPlugin('if', ({ data }, value: boolean | (() => boolean), fn: () => void) => {
+registerPlugin('if', (_def, value: boolean | (() => boolean), fn: () => void) => {
   if (typeof value === 'function') {
     value = value()
   }
@@ -250,16 +317,18 @@ registerPlugin('if', ({ data }, value: boolean | (() => boolean), fn: () => void
   }
 })
 
-registerPlugin('else', ({ data }, fn: () => void) => {
+registerPlugin('else', (_def, fn: () => void) => {
   if (doElse) { fn() }
 })
 
-registerPlugin('attr', ({ data }, ...params: any[]) => {
-  data.attrs = data.attrs || {}
+registerPlugin('attr', (def, ...params: any[]) => {
+  def.data.attrs = def.data.attrs || {}
   if (typeof params[0] === 'object') {
-    data.attrs = { ...data.attrs, ...params[0] }
+    for (const attr of Object.keys(params[0])) {
+      def.data.attrs[attr] = params[0][attr]
+    }
   } else if (typeof params[0] === 'string') {
-    data.attrs[params[0]] = params[1]
+    def.data.attrs[params[0]] = params[1]
   }
 })
 
@@ -269,8 +338,13 @@ registerPlugin('data', ({ data }, customData: VNodeData) => {
   })
 })
 
-registerPlugin('text', (def, textContent: string) => {
-  def.children.push(textContent)
+registerPlugin('text', (def, value: string) => {
+  def.children.push(value)
+})
+
+registerPlugin('html', (def, value: string) => {
+  def.data.domProps = def.data.domProps || {}
+  def.data.domProps.innerHTML = value
 })
 
 registerPlugin('bindProp', ({ data }, prop: string, target: any, value: string, event: string = 'input') => {

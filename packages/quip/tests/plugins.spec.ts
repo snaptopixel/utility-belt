@@ -1,4 +1,4 @@
-import { QuipPlugin, registerComponent } from '../src/index'
+import { QuipPlugin, Quip } from '../src/index'
 import { Vue, Prop, Component } from 'vue-property-decorator'
 import { mount } from '@vue/test-utils'
 import { SinonSpy } from 'sinon'
@@ -7,13 +7,13 @@ Vue.use(QuipPlugin)
 
 declare module '../src/index' {
   interface IComponents {
-    child: {foo?: string, bar?: string},
-    testControl: {isChecked?: boolean, textValue?: string}
+    CustomComponent: {foo?: string, bar?: string},
+    InputRenderer: {isChecked?: boolean, textValue?: string}
   }
 }
 
-@Component
-export class Child extends Vue {
+@Quip @Component
+export class CustomComponent extends Vue {
   @Prop() foo: string
   @Prop() bar: string
   render () {
@@ -22,10 +22,8 @@ export class Child extends Vue {
   }
 }
 
-registerComponent('child', Child)
-
-@Component
-export class TestControl extends Vue {
+@Quip @Component
+export class InputRenderer extends Vue {
   $refs: {
     checkbox: HTMLInputElement,
     textbox: HTMLInputElement
@@ -61,10 +59,8 @@ export class TestControl extends Vue {
   }
 }
 
-registerComponent('testControl', TestControl)
-
 @Component
-class MyComponent extends Vue {
+class QuipRenderer extends Vue {
   public onClick: SinonSpy = sinon.spy()
   public onMouseOver: SinonSpy = sinon.spy()
   public bindTarget = { enabled: true, label: 'Hello World' }
@@ -106,7 +102,7 @@ class MyComponent extends Vue {
             mouseover: this.onMouseOver
           })
         ()
-        .child('child')
+        .CustomComponent('child')
           .prop('foo', 'wow')
           .prop({
             bar: 'wee'
@@ -163,7 +159,7 @@ class MyComponent extends Vue {
           div('iffalsefn')
           ()
         })
-        .testControl('testControl')
+        .InputRenderer('inputRenderer')
           .bindProp('isChecked', this.bindTarget, 'enabled') // Uses default "input" event
           .bindProp('textValue', this.bindTarget, 'label', 'textchange')
         ()
@@ -171,18 +167,13 @@ class MyComponent extends Vue {
           .attr('type', 'checkbox')
           .bindAttr('checked', this.bindTarget, 'enabled', 'change')
         ()
-        .createElement('a', 'createEl')
-          .text('Hello There')
-          .attr('href', '#')
-          .style('fontWeight', 'bold')
-        ()
       ()
     )
   }
 }
 
 describe('quip plugins', () => {
-  const w = mount(MyComponent)
+  const w = mount(QuipRenderer)
 
   describe('css()', () => {
     it('can add classes by name or object', () => {
@@ -281,7 +272,7 @@ describe('quip plugins', () => {
 
   describe('bindProp()', () => {
     it('allows two-way binding', () => {
-      const c = w.find({ ref: 'testControl' })
+      const c = w.find({ ref: 'inputRenderer' })
       const checkbox = c.find({ ref: 'checkbox' })
       const textbox = c.find({ ref: 'textbox' })
       const checkboxEl = checkbox.element as HTMLInputElement
@@ -314,12 +305,6 @@ describe('quip plugins', () => {
       checkbox.checked = true
       c.trigger('change')
       expect(w.vm.bindTarget.enabled).true
-    })
-  })
-
-  describe('createElement()', () => {
-    it('can create arbitrary vnodes', () => {
-      expect(w.find({ ref: 'createEl' }).html()).eq('<a href="#" style="font-weight: bold;">Hello There</a>')
     })
   })
 })
